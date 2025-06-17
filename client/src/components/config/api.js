@@ -34,7 +34,9 @@ const API_ENDPOINTS = {
   whiteboard: {
     create: `${API_URL}/api/whiteboards`,
     myWhiteboards: `${API_URL}/api/whiteboards/my-whiteboards`,
-    update: `${API_URL}/api/whiteboards/update`,
+    getWhiteboard: `${API_URL}/api/whiteboards/`,
+    update: `${API_URL}/api/whiteboards/`,
+    delete: `${API_URL}/api/whiteboards/`,
   },
 };
 

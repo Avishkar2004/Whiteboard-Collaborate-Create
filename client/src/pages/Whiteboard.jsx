@@ -153,21 +153,19 @@ const Whiteboard = () => {
             <div className="flex items-center space-x-2 bg-gray-50 p-2 rounded-lg">
               <button
                 onClick={() => setTool('brush')}
-                className={`p-2 rounded-lg transition-colors duration-200 ${
-                  tool === 'brush'
-                    ? 'bg-primary-100 text-primary-600'
-                    : 'hover:bg-gray-100 text-gray-600'
-                }`}
+                className={`p-2 rounded-lg transition-colors duration-200 ${tool === 'brush'
+                  ? 'bg-primary-100 text-primary-600'
+                  : 'hover:bg-gray-100 text-gray-600'
+                  }`}
               >
                 <BrushIcon />
               </button>
               <button
                 onClick={() => setTool('text')}
-                className={`p-2 rounded-lg transition-colors duration-200 ${
-                  tool === 'text'
-                    ? 'bg-primary-100 text-primary-600'
-                    : 'hover:bg-gray-100 text-gray-600'
-                }`}
+                className={`p-2 rounded-lg transition-colors duration-200 ${tool === 'text'
+                  ? 'bg-primary-100 text-primary-600'
+                  : 'hover:bg-gray-100 text-gray-600'
+                  }`}
               >
                 <TextIcon />
               </button>

@@ -36,6 +36,7 @@ const Dashboard = () => {
   const [filterBy, setFilterBy] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchWhiteboards();
@@ -65,18 +66,17 @@ const Dashboard = () => {
       setWhiteboards([...whiteboards, response.data]);
       setOpen(false);
       setNewWhiteboard({ name: '', isPublic: false });
+      setError(null);
     } catch (error) {
       console.error('Error creating whiteboard:', error);
+      setError(error.response?.data?.message || 'Failed to create whiteboard');
     }
   };
 
-  const handleMenuClick = (e, whiteboardId) => {
-    e.stopPropagation();
-    setShowMenu(showMenu === whiteboardId ? null : whiteboardId);
-  };
-
   const handleWhiteboardClick = (whiteboardId) => {
-    navigate(`/whiteboard/${whiteboardId}`);
+    if (showMenu !== whiteboardId) {
+      navigate(`/whiteboard/${whiteboardId}`);
+    }
   };
 
   const filteredWhiteboards = whiteboards.filter(board => {
@@ -160,7 +160,6 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-
       {/* Main Content */}
       <div className="pl-64">
         <main className="max-w-7xl mx-auto px-8 py-8">
@@ -203,7 +202,6 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-
             {/* Filter Options */}
             {showFilters && (
               <div className="mt-4 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
@@ -239,7 +237,6 @@ const Dashboard = () => {
               </div>
             )}
           </div>
-
           {/* Whiteboards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {sortedWhiteboards.map((whiteboard) => (
@@ -257,34 +254,6 @@ const Dashboard = () => {
                       <p className="text-sm text-gray-500 mt-1">
                         Created {new Date(whiteboard.createdAt).toLocaleDateString()}
                       </p>
-                    </div>
-                    <div className="relative">
-                      <button
-                        onClick={(e) => handleMenuClick(e, whiteboard._id)}
-                        className="p-1 rounded-full hover:bg-gray-100 transition-colors duration-200"
-                      >
-                        <MoreVertIcon className="h-5 w-5 text-gray-400" />
-                      </button>
-                      {showMenu === whiteboard._id && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg py-1 z-10 border border-gray-200">
-                          <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center">
-                            <StarBorderIcon className="h-4 w-4 mr-2" />
-                            Add to starred
-                          </button>
-                          <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center">
-                            <ShareIcon className="h-4 w-4 mr-2" />
-                            Share
-                          </button>
-                          <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center">
-                            <EditIcon className="h-4 w-4 mr-2" />
-                            Rename
-                          </button>
-                          <button className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-50 flex items-center">
-                            <DeleteIcon className="h-4 w-4 mr-2" />
-                            Delete
-                          </button>
-                        </div>
-                      )}
                     </div>
                   </div>
                   <div className="space-y-3">
@@ -311,17 +280,12 @@ const Dashboard = () => {
                         <PersonIcon className="h-4 w-4 mr-1" />
                         0 collaborators
                       </span>
-                      <span className="flex items-center">
-                        <CommentIcon className="h-4 w-4 mr-1" />
-                        0 comments
-                      </span>
                     </div>
                   </div>
                 </div>
               </div>
             ))}
           </div>
-
           {/* Empty State */}
           {sortedWhiteboards.length === 0 && (
             <div className="text-center py-16">
@@ -380,20 +344,26 @@ const Dashboard = () => {
                     </label>
                   </div>
                 </div>
-                <div className="px-6 py-4 bg-gray-50 flex justify-end space-x-3 rounded-b-xl">
+                <div className="px-6 py-5 bg-gray-50 flex flex-col items-end rounded-b-xl space-y-2 sm:space-y-0 sm:flex-row sm:justify-end sm:space-x-4">
+                  {error && (
+                    <div className="w-full text-right">
+                      <span className="text-sm text-red-500">{error}</span>
+                    </div>
+                  )}
                   <button
                     onClick={() => setOpen(false)}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+                    className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleCreateWhiteboard}
-                    className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 border border-transparent rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+                    className="px-5 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 border border-transparent rounded-xl shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition"
                   >
                     Create Whiteboard
                   </button>
                 </div>
+
               </div>
             </div>
           )}
