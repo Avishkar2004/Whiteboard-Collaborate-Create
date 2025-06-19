@@ -1,6 +1,4 @@
-import redisClient from "../config/redis.js";
-
-const cacheMiddleware = (duration) => {
+const cacheMiddleware = (redisClient, duration) => {
   return async (req, res, next) => {
     // Skip caching for non-GET requests
     if (req.method !== "GET") {

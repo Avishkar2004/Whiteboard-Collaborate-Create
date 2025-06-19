@@ -2,12 +2,13 @@ import express from "express";
 import http from "http";
 import cors from "cors";
 import "dotenv/config";
-import connectDB from "../config/db.js";
-import cacheMiddleware from "../middleware/redisCache.js";
+import { connectRedis, redisClient } from "./config/redis.js";
+import cacheMiddleware from "./middleware/redisCache.js";
+import connectDB from "./config/db.js";
 
 // Import routes
-import userRoutes from "../routes/userRoutes.js";
-import whiteboardRoutes from "../routes/whiteboardRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import whiteboardRoutes from "./routes/whiteboardRoutes.js";
 
 // Initialize Express app
 const app = express();
@@ -25,8 +26,11 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Cache middleware
-app.use(cacheMiddleware(60));
+// Connect to Redis
+connectRedis.then((redisClient) => {
+  // Cache middleware
+  app.use(cacheMiddleware(redisClient, 60));
+});
 
 // Routes
 app.use("/api/users", userRoutes);
@@ -41,8 +45,13 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+Promise.all([connectRedis, connectDB])
+  .then(() => {
+    server.listen(process.env.PORT, () => {
+      console.log(`Server running on port ${process.env.PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Failed to connect to DB or Redis:", err);
+    process.exit(1);
+  });
