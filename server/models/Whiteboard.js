@@ -26,6 +26,13 @@ const whiteboardSchema = new mongoose.Schema(
         version: 1,
       },
     },
+    starredBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: [],
+      },
+    ],
     isPublic: {
       type: Boolean,
       default: false,

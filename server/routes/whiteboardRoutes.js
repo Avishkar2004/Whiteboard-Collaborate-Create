@@ -5,8 +5,9 @@ import {
   deleteWhiteboard,
   getUserWhiteboards,
   getWhiteboard,
+  toggleStarWhiteboard,
   updateWhiteboard,
-    } from "../controllers/whiteboardController.js";
+} from "../controllers/whiteboardController.js";
 import auth from "../middleware/auth.js";
 
 // All routes are protected with authentication
@@ -26,5 +27,8 @@ router.put("/:id", updateWhiteboard);
 
 // Delete whiteboard
 router.delete("/:id", deleteWhiteboard);
+
+// Star or unstar a whiteboard
+router.put("/star/:id", toggleStarWhiteboard);
 
 export default router;

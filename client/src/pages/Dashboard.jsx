@@ -1,383 +1,365 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Add as AddIcon,
-  Public as PublicIcon,
-  Lock as LockIcon,
-  MoreVert as MoreVertIcon,
-  Delete as DeleteIcon,
-  Share as ShareIcon,
-  Star as StarIcon,
-  StarBorder as StarBorderIcon,
-  Search as SearchIcon,
-  FilterList as FilterListIcon,
-  Sort as SortIcon,
-  Person as PersonIcon,
-  Comment as CommentIcon,
-  Edit as EditIcon,
-  Dashboard as DashboardIcon,
-  Group as GroupIcon,
-  AccessTime as AccessTimeIcon,
-  Star as StarFilledIcon,
-} from '@mui/icons-material';
-import api, { API_ENDPOINTS } from '../components/config/api';
+  LayoutDashboard,
+  Users,
+  Clock,
+  Star,
+  Search,
+  Filter,
+  Plus,
+  Globe,
+  Lock,
+  Trash2,
+  MoreHorizontal,
+  FileWarning,
+  X,
+} from 'lucide-react';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
+import useWhiteboards from '../hooks/useWhiteboards';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { token, isAuthenticated } = useAuth();
-  const [whiteboards, setWhiteboards] = useState([]);
-  const [open, setOpen] = useState(false);
-  const [newWhiteboard, setNewWhiteboard] = useState({ name: '', isPublic: false });
+  const { isAuthenticated } = useAuth();
+  const {
+    whiteboards,
+    fetchWhiteboards,
+    createWhiteboard,
+    deleteWhiteboard,
+    toggleStarWhiteboard,
+    loading,
+  } = useWhiteboards();
+
+  const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('recent');
   const [filterBy, setFilterBy] = useState('all');
-  const [showFilters, setShowFilters] = useState(false);
-  const [activeTab, setActiveTab] = useState('all');
+
+  const [isCreateModalOpen, setCreateModalOpen] = useState(false);
+  const [newWhiteboard, setNewWhiteboard] = useState({ name: '', isPublic: false });
   const [error, setError] = useState(null);
 
-  const fetchWhiteboards = async () => {
-    if (!isAuthenticated) {
-      navigate("/login");
-      return;
+  const [activeCardMenu, setActiveCardMenu] = useState(null);
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [boardToDelete, setBoardToDelete] = useState(null);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchWhiteboards();
     }
-    try {
-      const response = await api.get(API_ENDPOINTS.whiteboard.myWhiteboards, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setWhiteboards(Array.isArray(response.data) ? response.data : []);
-    } catch (error) {
-      console.error('Error fetching whiteboards:', error);
-      setWhiteboards([]);
+  }, [isAuthenticated]);
+
+  const handleStarToggle = async (e, boardId, isStarred) => {
+    e.stopPropagation();
+    await toggleStarWhiteboard(boardId, !isStarred);
+  };
+
+  const openDeleteModal = (e, board) => {
+    e.stopPropagation();
+    setBoardToDelete(board);
+    setDeleteModalOpen(true);
+    setActiveCardMenu(null);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (boardToDelete) {
+      await deleteWhiteboard(boardToDelete._id);
+      setDeleteModalOpen(false);
+      setBoardToDelete(null);
     }
   };
 
-  useEffect(() => {
-    fetchWhiteboards();
-  }, [isAuthenticated, navigate]);
+  const filteredAndSortedWhiteboards = useMemo(() => {
+    return whiteboards
+      .filter(board => {
+        // Tab filtering
+        if (activeTab === 'starred') return board.isStarred;
+        if (activeTab === 'shared') return board.owner !== isAuthenticated.id; // Example logic
+        return true;
+      })
+      .filter(board => {
+        // Search query filtering
+        return board.name?.toLowerCase().includes(searchQuery.toLowerCase());
+      })
+      .filter(board => {
+        // Public/Private filtering
+        if (filterBy === 'all') return true;
+        if (filterBy === 'public') return board.isPublic;
+        if (filterBy === 'private') return !board.isPublic;
+        return true;
+      })
+      .sort((a, b) => {
+        if (sortBy === 'name') {
+          return a.name.localeCompare(b.name);
+        }
+        // Default to recent
+        return new Date(b.lastModified) - new Date(a.lastModified);
+      });
+  }, [whiteboards, activeTab, searchQuery, filterBy, sortBy]);
 
   const handleCreateWhiteboard = async () => {
     try {
-      const response = await api.post(
-        API_ENDPOINTS.whiteboard.create,
-        newWhiteboard,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setWhiteboards([...whiteboards, response.data]);
-      setOpen(false);
+      // Basic validation
+      if (!newWhiteboard.name.trim()) {
+        setError("Whiteboard name cannot be empty.");
+        return;
+      }
+      await createWhiteboard(newWhiteboard);
+      setCreateModalOpen(false);
       setNewWhiteboard({ name: '', isPublic: false });
       setError(null);
-    } catch (error) {
-      console.error('Error creating whiteboard:', error);
-      setError(error.response?.data?.message || 'Failed to create whiteboard');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to create whiteboard');
     }
   };
 
-  const handleWhiteboardClick = (whiteboardId) => {
-    navigate(`/whiteboard/${whiteboardId}`);
-  };
-
-  const filteredWhiteboards = whiteboards.filter(board => {
-    const matchesSearch = board.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = filterBy === 'all' ||
-      (filterBy === 'public' && board.isPublic) ||
-      (filterBy === 'private' && !board.isPublic);
-    return matchesSearch && matchesFilter;
-  });
-
-  const sortedWhiteboards = [...filteredWhiteboards].sort((a, b) => {
-    if (sortBy === 'recent') {
-      return new Date(b.lastModified) - new Date(a.lastModified);
-    }
-    if (sortBy === 'name') {
-      return a.name.localeCompare(b.name);
-    }
-    return 0;
-  });
   if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <h1 className="text-2xl font-bold text-red-600">Session expired or unauthorized. Please login again.</h1>
-      </div>
-    );
+    // This can be replaced with a redirect or a more specific component
+    return null;
   }
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1 },
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-30">
-        <div className="flex flex-col h-full">
-          <div className="p-6">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              Whiteboard App
-            </h1>
-          </div>
-          <nav className="flex-1 px-4 space-y-1">
-            <button
-              onClick={() => setActiveTab('all')}
-              className={`w-full flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${activeTab === 'all'
-                ? 'bg-indigo-50 text-indigo-600'
-                : 'text-gray-600 hover:bg-gray-50'
-                }`}
-            >
-              <DashboardIcon className="h-5 w-5 mr-3" />
-              <span className="font-medium">All Whiteboards</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('shared')}
-              className={`w-full flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${activeTab === 'shared'
-                ? 'bg-indigo-50 text-indigo-600'
-                : 'text-gray-600 hover:bg-gray-50'
-                }`}
-            >
-              <GroupIcon className="h-5 w-5 mr-3" />
-              <span className="font-medium">Shared with Me</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('recent')}
-              className={`w-full flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${activeTab === 'recent'
-                ? 'bg-indigo-50 text-indigo-600'
-                : 'text-gray-600 hover:bg-gray-50'
-                }`}
-            >
-              <AccessTimeIcon className="h-5 w-5 mr-3" />
-              <span className="font-medium">Recent</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('starred')}
-              className={`w-full flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${activeTab === 'starred'
-                ? 'bg-indigo-50 text-indigo-600'
-                : 'text-gray-600 hover:bg-gray-50'
-                }`}
-            >
-              <StarFilledIcon className="h-5 w-5 mr-3" />
-              <span className="font-medium">Starred</span>
-            </button>
-          </nav>
-          <div className="p-4 border-t border-gray-100">
-            <button
-              onClick={() => setOpen(true)}
-              className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
-            >
-              <AddIcon className="h-5 w-5 mr-2" />
-              <span className="font-medium">New Whiteboard</span>
-            </button>
-          </div>
+      <aside className="w-64 bg-white shadow-md flex-shrink-0">
+        <div className="p-6">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            My Boards
+          </h1>
         </div>
-      </div>
+        <nav className="mt-6 px-4 space-y-2">
+          {['all', 'shared', 'recent', 'starred'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === tab
+                  ? 'bg-indigo-50 text-indigo-600'
+                  : 'text-gray-600 hover:bg-indigo-50'
+                }`}
+            >
+              {tab === 'all' && <LayoutDashboard className="h-5 w-5 mr-3" />}
+              {tab === 'shared' && <Users className="h-5 w-5 mr-3" />}
+              {tab === 'recent' && <Clock className="h-5 w-5 mr-3" />}
+              {tab === 'starred' && <Star className="h-5 w-5 mr-3" />}
+              <span className="font-medium capitalize">{tab}</span>
+            </button>
+          ))}
+        </nav>
+      </aside>
+
       {/* Main Content */}
-      <div className="pl-64">
-        <main className="max-w-7xl mx-auto px-8 py-8">
+      <div className="flex-1 p-8">
+        <main>
           {/* Header */}
-          <div className="mb-8">
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-3xl font-bold text-gray-900">My Dashboard</h2>
-                <p className="mt-2 text-gray-600">Create and collaborate on interactive whiteboards</p>
-              </div>
-              <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <SearchIcon className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search whiteboards..."
-                    className="w-64 pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm"
-                  />
-                </div>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className="inline-flex items-center px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm"
-                  >
-                    <FilterListIcon className="h-5 w-5 mr-2" />
-                    Filters
-                  </button>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="inline-flex items-center px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm"
-                  >
-                    <option value="recent">Most Recent</option>
-                    <option value="name">Name</option>
-                  </select>
-                </div>
-              </div>
+          <div className="flex justify-between items-center mb-8">
+            <div className="relative w-full max-w-xs">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search whiteboards..."
+                className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
             </div>
-            {/* Filter Options */}
-            {showFilters && (
-              <div className="mt-4 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                <div className="flex flex-wrap gap-4">
-                  <button
-                    onClick={() => setFilterBy('all')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${filterBy === 'all'
-                      ? 'bg-indigo-100 text-indigo-700 shadow-sm'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                  >
-                    All
-                  </button>
-                  <button
-                    onClick={() => setFilterBy('public')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${filterBy === 'public'
-                      ? 'bg-green-100 text-green-700 shadow-sm'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                  >
-                    Public
-                  </button>
-                  <button
-                    onClick={() => setFilterBy('private')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${filterBy === 'private'
-                      ? 'bg-gray-100 text-gray-700 shadow-sm'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                  >
-                    Private
-                  </button>
-                </div>
-              </div>
-            )}
+            <button
+              onClick={() => setCreateModalOpen(true)}
+              className="flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg shadow-sm hover:bg-indigo-700 transition-colors"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              New Whiteboard
+            </button>
           </div>
+
           {/* Whiteboards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sortedWhiteboards.map((whiteboard) => (
-              <div
-                key={whiteboard._id}
-                onClick={() => handleWhiteboardClick(whiteboard._id)}
-                className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden border border-gray-200 transform hover:-translate-y-1"
+          <AnimatePresence>
+            {loading ? (
+              <p>Loading boards...</p>
+            ) : filteredAndSortedWhiteboards.length > 0 ? (
+              <Motion.div
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
               >
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors duration-200">
-                        {whiteboard.name}
-                      </h3>
-                      <p className="text-sm text-gray-500 mt-1">
-                        Created {new Date(whiteboard.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        {whiteboard.isPublic ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            <PublicIcon className="h-3 w-3 mr-1" />
-                            Public
+                {filteredAndSortedWhiteboards.map((board) => (
+                  <Motion.div
+                    key={board._id}
+                    variants={itemVariants}
+                    layout
+                    onClick={() => navigate(`/whiteboard/${board._id}`)}
+                    className="group bg-white rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:shadow-lg hover:border-indigo-400 transition-all duration-300"
+                  >
+                    <div className="p-4">
+                      <div className="flex justify-between items-start">
+                        <h3 className="font-semibold text-gray-800 group-hover:text-indigo-600 flex-1 mr-2">
+                          {board.name}
+                        </h3>
+                        <div className="relative">
+                          <button
+                            onClick={(e) => handleStarToggle(e, board._id, board.isStarred)}
+                            className="p-1 rounded-full hover:bg-gray-100"
+                          >
+                            <Star
+                              className={`h-5 w-5 transition-colors ${board.isStarred ? 'text-yellow-400 fill-current' : 'text-gray-400'
+                                }`}
+                            />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveCardMenu(activeCardMenu === board._id ? null : board._id);
+                            }}
+                            className="p-1 rounded-full hover:bg-gray-100"
+                          >
+                            <MoreHorizontal className="h-5 w-5 text-gray-500" />
+                          </button>
+                          <AnimatePresence>
+                            {activeCardMenu === board._id && (
+                              <Motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="absolute right-0 mt-2 w-32 bg-white rounded-md shadow-lg border z-10"
+                              >
+                                <button
+                                  onClick={(e) => openDeleteModal(e, board)}
+                                  className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                  Delete
+                                </button>
+                              </Motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      </div>
+                      <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
+                        {board.isPublic ? (
+                          <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                            <Globe className="h-3 w-3" /> Public
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                            <LockIcon className="h-3 w-3 mr-1" />
-                            Private
+                          <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
+                            <Lock className="h-3 w-3" /> Private
                           </span>
                         )}
+                        <span>{new Date(board.lastModified).toLocaleDateString()}</span>
                       </div>
-                      <span className="text-xs text-gray-500">
-                        Last modified: {new Date(whiteboard.lastModified).toLocaleDateString()}
-                      </span>
                     </div>
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <span className="flex items-center">
-                        <PersonIcon className="h-4 w-4 mr-1" />
-                        0 collaborators
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          {/* Empty State */}
-          {sortedWhiteboards.length === 0 && (
-            <div className="text-center py-16">
-              <div className="bg-white rounded-xl shadow-sm p-8 max-w-md mx-auto">
-                <div className="text-gray-400 mb-4">
-                  <AddIcon className="h-16 w-16 mx-auto" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No whiteboards found</h3>
-                <p className="text-gray-500 mb-6">
-                  {searchQuery ? 'Try adjusting your search or filters' : 'Create your first whiteboard to start collaborating'}
-                </p>
-                {!searchQuery && (
-                  <button
-                    onClick={() => setOpen(true)}
-                    className="inline-flex items-center px-6 py-3 border border-transparent rounded-xl shadow-sm text-base font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 transform hover:-translate-y-0.5"
-                  >
-                    <AddIcon className="h-5 w-5 mr-2" />
-                    Create Whiteboard
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Create Whiteboard Modal */}
-          {open && (
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-              <div className="bg-white rounded-xl shadow-xl max-w-md w-full transform transition-all duration-300 scale-100">
-                <div className="px-6 py-4 border-b border-gray-200">
-                  <h3 className="text-xl font-semibold text-gray-900">Create New Whiteboard</h3>
-                </div>
-                <div className="px-6 py-4 space-y-4">
-                  <div>
-                    <label htmlFor="whiteboard-name" className="block text-sm font-medium text-gray-700 mb-1">
-                      Whiteboard Name
-                    </label>
-                    <input
-                      id="whiteboard-name"
-                      type="text"
-                      value={newWhiteboard.name}
-                      onChange={(e) => setNewWhiteboard({ ...newWhiteboard, name: e.target.value })}
-                      placeholder="Enter whiteboard name"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div className="flex items-center">
-                    <input
-                      id="is-public"
-                      type="checkbox"
-                      checked={newWhiteboard.isPublic}
-                      onChange={(e) => setNewWhiteboard({ ...newWhiteboard, isPublic: e.target.checked })}
-                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                    />
-                    <label htmlFor="is-public" className="ml-2 block text-sm text-gray-700">
-                      Make this whiteboard public
-                    </label>
-                  </div>
-                </div>
-                <div className="px-6 py-5 bg-gray-50 flex flex-col items-end rounded-b-xl space-y-2 sm:space-y-0 sm:flex-row sm:justify-end sm:space-x-4">
-                  {error && (
-                    <div className="w-full text-right">
-                      <span className="text-sm text-red-500">{error}</span>
-                    </div>
-                  )}
-                  <button
-                    onClick={() => setOpen(false)}
-                    className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleCreateWhiteboard}
-                    className="px-5 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 border border-transparent rounded-xl shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition"
-                  >
-                    Create Whiteboard
-                  </button>
-                </div>
-
-              </div>
-            </div>
-          )}
+                  </Motion.div>
+                ))}
+              </Motion.div>
+            ) : (
+              <Motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">
+                <h3 className="text-lg font-medium text-gray-900">No whiteboards found</h3>
+                <p className="mt-1 text-sm text-gray-500">Get started by creating a new one!</p>
+              </Motion.div>
+            )}
+          </AnimatePresence>
         </main>
       </div>
+
+      {/* Create Modal */}
+      <AnimatePresence>
+        {isCreateModalOpen && (
+          <Motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+            onClick={() => setCreateModalOpen(false)}
+          >
+            <Motion.div
+              initial={{ y: -50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -50, opacity: 0 }}
+              className="bg-white rounded-lg shadow-xl w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">New Whiteboard</h2>
+                {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+                <input
+                  type="text"
+                  value={newWhiteboard.name}
+                  onChange={(e) => setNewWhiteboard({ ...newWhiteboard, name: e.target.value })}
+                  placeholder="Whiteboard Name"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                />
+                <div className="mt-4 flex items-center">
+                  <input
+                    id="is-public"
+                    type="checkbox"
+                    checked={newWhiteboard.isPublic}
+                    onChange={(e) => setNewWhiteboard({ ...newWhiteboard, isPublic: e.target.checked })}
+                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                  />
+                  <label htmlFor="is-public" className="ml-2 text-sm text-gray-700">Make Public</label>
+                </div>
+              </div>
+              <div className="px-6 py-3 bg-gray-50 flex justify-end gap-3">
+                <button onClick={() => setCreateModalOpen(false)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+                <button onClick={handleCreateWhiteboard} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-lg hover:bg-indigo-700">Create</button>
+              </div>
+            </Motion.div>
+          </Motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {isDeleteModalOpen && (
+          <Motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+            onClick={() => setDeleteModalOpen(false)}
+          >
+            <Motion.div
+              initial={{ y: -50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -50, opacity: 0 }}
+              className="bg-white rounded-lg shadow-xl w-full max-w-sm"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6 text-center">
+                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                  <FileWarning className="h-6 w-6 text-red-600" />
+                </div>
+                <h3 className="mt-5 text-lg font-medium text-gray-900">Delete Whiteboard?</h3>
+                <p className="mt-2 text-sm text-gray-500">
+                  Are you sure you want to delete "{boardToDelete?.name}"? This action cannot be undone.
+                </p>
+              </div>
+              <div className="px-6 py-4 bg-gray-50 flex justify-center gap-3">
+                <button onClick={() => setDeleteModalOpen(false)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+                <button onClick={handleDeleteConfirm} className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700">Delete</button>
+              </div>
+            </Motion.div>
+          </Motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 };
 
-export default Dashboard; 
+export default Dashboard;

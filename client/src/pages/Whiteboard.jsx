@@ -1,13 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import {
-  Brush as BrushIcon,
-  TextFields as TextIcon,
-  Delete as DeleteIcon,
-  Save as SaveIcon,
-  ColorLens as ColorIcon,
-  LineWeight as LineWeightIcon,
-} from '@mui/icons-material';
+  Brush,
+  Save,
+  Trash2,
+  Undo2,
+  Redo2,
+  Palette,
+  Eraser,
+} from 'lucide-react';
 import { io } from 'socket.io-client';
 import { useAuth } from '../hooks/useAuth';
 import api, { API_ENDPOINTS } from '../components/config/api';
@@ -16,247 +17,231 @@ const Whiteboard = () => {
   const { id } = useParams();
   const { token } = useAuth();
   const canvasRef = useRef(null);
+  const contextRef = useRef(null);
   const [socket, setSocket] = useState(null);
+
   const [isDrawing, setIsDrawing] = useState(false);
   const [tool, setTool] = useState('brush');
   const [color, setColor] = useState('#000000');
-  const [lineWidth, setLineWidth] = useState(2);
-  const [showColorPicker, setShowColorPicker] = useState(false);
-  const [showLineWidth, setShowLineWidth] = useState(false);
+  const [lineWidth, setLineWidth] = useState(5);
 
-  useEffect(() => {
-    const newSocket = io('http://localhost:5000', {
-      auth: { token },
+  const [drawingHistory, setDrawingHistory] = useState([]);
+  const [historyPointer, setHistoryPointer] = useState(-1);
+  
+  const redrawCanvas = useCallback(() => {
+    if (!contextRef.current) return;
+    const context = contextRef.current;
+    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+
+    // Redraw only the active part of the history
+    const historyToDraw = drawingHistory.slice(0, historyPointer + 1);
+
+    historyToDraw.forEach((path) => {
+      context.strokeStyle = path.color;
+      context.lineWidth = path.lineWidth;
+      context.lineCap = 'round';
+      context.lineJoin = 'round';
+      context.beginPath();
+      path.points.forEach((point, index) => {
+        if (index === 0) {
+          context.moveTo(point.x, point.y);
+        } else {
+          context.lineTo(point.x, point.y);
+        }
+      });
+      context.stroke();
     });
+  }, [drawingHistory, historyPointer]);
 
-    newSocket.emit('join-room', id);
-
-    newSocket.on('draw', (data) => {
-      const ctx = canvasRef.current.getContext('2d');
-      ctx.beginPath();
-      ctx.moveTo(data.x0, data.y0);
-      ctx.lineTo(data.x1, data.y1);
-      ctx.strokeStyle = data.color;
-      ctx.lineWidth = data.lineWidth;
-      ctx.stroke();
-    });
-
-    setSocket(newSocket);
-
-    return () => {
-      newSocket.disconnect();
-    };
-  }, [id, token]);
-
+  // Effect for setting up canvas, context, and socket
   useEffect(() => {
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth * 2;
+    canvas.height = window.innerHeight * 2;
+    canvas.style.width = `${window.innerWidth}px`;
+    canvas.style.height = `${window.innerHeight}px`;
 
-    // Set canvas size
-    canvas.width = window.innerWidth - 100;
-    canvas.height = window.innerHeight - 100;
+    const context = canvas.getContext('2d');
+    context.scale(2, 2);
+    context.lineCap = 'round';
+    context.strokeStyle = color;
+    context.lineWidth = lineWidth;
+    contextRef.current = context;
 
-    // Load whiteboard content
+    const newSocket = io('http://localhost:5000', { auth: { token } });
+    setSocket(newSocket);
+
+    return () => newSocket.disconnect();
+  }, [token]);
+  
+  // Effect for redrawing when history changes
+  useEffect(() => {
+    redrawCanvas();
+  }, [drawingHistory, historyPointer, redrawCanvas]);
+
+  // Load existing whiteboard content
+  useEffect(() => {
     const loadWhiteboard = async () => {
       try {
-        const response = await api.get(`${API_ENDPOINTS.whiteboard.getWhiteboard}${id}`, {
+        const response = await api.get(`${API_ENDPOINTS.whiteboard.getWhiteboard}/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (response.data.content.elements) {
-          response.data.content.elements.forEach((element) => {
-            ctx.beginPath();
-            ctx.moveTo(element.x0, element.y0);
-            ctx.lineTo(element.x1, element.y1);
-            ctx.strokeStyle = element.color;
-            ctx.lineWidth = element.lineWidth;
-            ctx.stroke();
-          });
+        const { elements } = response.data.content;
+        if (elements && elements.length > 0) {
+          setDrawingHistory(elements);
+          setHistoryPointer(elements.length - 1);
         }
       } catch (error) {
         console.error('Error loading whiteboard:', error);
       }
     };
-
-    loadWhiteboard();
+    if (token && id) {
+      loadWhiteboard();
+    }
   }, [id, token]);
+  
+  // Socket.io event listeners
+  useEffect(() => {
+    if (!socket) return;
+  
+    socket.emit('join-room', id);
+  
+    const handleDraw = (data) => {
+      const context = contextRef.current;
+      context.strokeStyle = data.color;
+      context.lineWidth = data.lineWidth;
+      context.lineCap = 'round';
+      context.lineJoin = 'round';
+      context.beginPath();
+      data.points.forEach((point, index) => {
+          if (index === 0) {
+              context.moveTo(point.x, point.y);
+          } else {
+              context.lineTo(point.x, point.y);
+          }
+      });
+      context.stroke();
+    };
+  
+    socket.on('draw', handleDraw);
+  
+    return () => {
+      socket.off('draw', handleDraw);
+    };
+  }, [socket, id]);
 
-  const startDrawing = (e) => {
+
+  const startDrawing = ({ nativeEvent }) => {
+    const { offsetX, offsetY } = nativeEvent;
+    const newPath = {
+      tool,
+      color: tool === 'eraser' ? '#FFFFFF' : color,
+      lineWidth: tool === 'eraser' ? 20 : lineWidth,
+      points: [{ x: offsetX, y: offsetY }],
+    };
+    
+    // When starting a new line, truncate the future history
+    const newHistory = drawingHistory.slice(0, historyPointer + 1);
+    
+    setDrawingHistory([...newHistory, newPath]);
+    setHistoryPointer(newHistory.length);
     setIsDrawing(true);
-    const { offsetX, offsetY } = e.nativeEvent;
-    const ctx = canvasRef.current.getContext('2d');
-    ctx.beginPath();
-    ctx.moveTo(offsetX, offsetY);
   };
 
-  const draw = (e) => {
+  const draw = ({ nativeEvent }) => {
     if (!isDrawing) return;
-    const { offsetX, offsetY } = e.nativeEvent;
-    const ctx = canvasRef.current.getContext('2d');
-    ctx.lineTo(offsetX, offsetY);
-    ctx.strokeStyle = color;
-    ctx.lineWidth = lineWidth;
-    ctx.stroke();
+    const { offsetX, offsetY } = nativeEvent;
+    
+    // Add the new point to the current path in history
+    const updatedHistory = [...drawingHistory];
+    updatedHistory[historyPointer].points.push({ x: offsetX, y: offsetY });
+    setDrawingHistory(updatedHistory);
+    
+    redrawCanvas(); // Redraw to show the line as it's being drawn
 
     if (socket) {
-      socket.emit('draw', {
-        roomId: id,
-        x0: e.nativeEvent.offsetX - 1,
-        y0: e.nativeEvent.offsetY - 1,
-        x1: e.nativeEvent.offsetX,
-        y1: e.nativeEvent.offsetY,
-        color,
-        lineWidth,
-      });
-    }
+        socket.emit('draw', {
+          roomId: id,
+          ...updatedHistory[historyPointer]
+        });
+      }
   };
 
   const stopDrawing = () => {
     setIsDrawing(false);
   };
+  
+  const handleUndo = useCallback(() => {
+    if (historyPointer >= 0) {
+      setHistoryPointer(prev => prev - 1);
+    }
+  }, [historyPointer]);
 
-  const clearCanvas = () => {
-    const ctx = canvasRef.current.getContext('2d');
-    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-  };
+  const handleRedo = useCallback(() => {
+    if (historyPointer < drawingHistory.length - 1) {
+      setHistoryPointer(prev => prev + 1);
+    }
+  }, [historyPointer, drawingHistory.length]);
 
   const saveWhiteboard = async () => {
     try {
-      const canvas = canvasRef.current;
-      const imageData = canvas.toDataURL('image/png');
+      const activeHistory = drawingHistory.slice(0, historyPointer + 1);
       await api.put(
-        `${API_ENDPOINTS.whiteboard.update}${id}`,
-        { content: { imageData } },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        `/api/whiteboards/${id}`,
+        { content: { elements: activeHistory } },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
+      alert('Whiteboard saved!');
     } catch (error) {
       console.error('Error saving whiteboard:', error);
+      alert('Failed to save whiteboard.');
     }
   };
-
-  const colors = [
-    '#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00',
-    '#FF00FF', '#00FFFF', '#FFA500', '#800080', '#008000'
-  ];
-
-  const lineWidths = [1, 2, 4, 6, 8];
+  
+  const clearCanvas = () => {
+    setDrawingHistory([]);
+    setHistoryPointer(-1);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
+    <div className="min-h-screen bg-gray-100 flex flex-col overflow-hidden">
       {/* Toolbar */}
-      <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            {/* Drawing Tools */}
-            <div className="flex items-center space-x-2 bg-gray-50 p-2 rounded-lg">
-              <button
-                onClick={() => setTool('brush')}
-                className={`p-2 rounded-lg transition-colors duration-200 ${tool === 'brush'
-                  ? 'bg-primary-100 text-primary-600'
-                  : 'hover:bg-gray-100 text-gray-600'
-                  }`}
-              >
-                <BrushIcon />
-              </button>
-              <button
-                onClick={() => setTool('text')}
-                className={`p-2 rounded-lg transition-colors duration-200 ${tool === 'text'
-                  ? 'bg-primary-100 text-primary-600'
-                  : 'hover:bg-gray-100 text-gray-600'
-                  }`}
-              >
-                <TextIcon />
-              </button>
-            </div>
-
-            {/* Color Picker */}
-            <div className="relative">
-              <button
-                onClick={() => setShowColorPicker(!showColorPicker)}
-                className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors duration-200"
-                style={{ color: color }}
-              >
-                <ColorIcon />
-              </button>
-              {showColorPicker && (
-                <div className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-lg p-2 z-10">
-                  <div className="grid grid-cols-5 gap-2">
-                    {colors.map((c) => (
-                      <button
-                        key={c}
-                        onClick={() => {
-                          setColor(c);
-                          setShowColorPicker(false);
-                        }}
-                        className="w-6 h-6 rounded-full border border-gray-200 hover:scale-110 transition-transform duration-200"
-                        style={{ backgroundColor: c }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Line Width */}
-            <div className="relative">
-              <button
-                onClick={() => setShowLineWidth(!showLineWidth)}
-                className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors duration-200"
-              >
-                <LineWeightIcon />
-              </button>
-              {showLineWidth && (
-                <div className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-lg p-2 z-10">
-                  <div className="space-y-2">
-                    {lineWidths.map((width) => (
-                      <button
-                        key={width}
-                        onClick={() => {
-                          setLineWidth(width);
-                          setShowLineWidth(false);
-                        }}
-                        className="w-full h-6 flex items-center justify-center hover:bg-gray-100 rounded transition-colors duration-200"
-                      >
-                        <div
-                          className="bg-black rounded-full"
-                          style={{ width: width * 4, height: width }}
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={clearCanvas}
-              className="p-2 rounded-lg hover:bg-red-100 text-red-600 transition-colors duration-200"
-            >
-              <DeleteIcon />
+      <div className="bg-white shadow-lg p-2 flex items-center justify-between z-10">
+        <div className="flex items-center gap-2">
+            <button onClick={() => setTool('brush')} className={`p-2 rounded-lg ${tool === 'brush' ? 'bg-indigo-100 text-indigo-600' : ''}`}>
+                <Brush />
             </button>
-            <button
-              onClick={saveWhiteboard}
-              className="p-2 rounded-lg hover:bg-green-100 text-green-600 transition-colors duration-200"
-            >
-              <SaveIcon />
+            <button onClick={() => setTool('eraser')} className={`p-2 rounded-lg ${tool === 'eraser' ? 'bg-indigo-100 text-indigo-600' : ''}`}>
+                <Eraser />
             </button>
-          </div>
+            <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="w-8 h-8"/>
+            <button onClick={handleUndo} className="p-2 rounded-lg hover:bg-gray-100 disabled:text-gray-300" disabled={historyPointer < 0}>
+                <Undo2 />
+            </button>
+            <button onClick={handleRedo} className="p-2 rounded-lg hover:bg-gray-100 disabled:text-gray-300" disabled={historyPointer >= drawingHistory.length - 1}>
+                <Redo2 />
+            </button>
+        </div>
+        <div className="flex items-center gap-2">
+            <button onClick={saveWhiteboard} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                <Save />
+                <span>Save</span>
+            </button>
+            <button onClick={clearCanvas} className="p-2 rounded-lg hover:bg-red-100 text-red-500">
+                <Trash2 />
+            </button>
         </div>
       </div>
 
       {/* Canvas */}
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+      <div className="flex-grow w-full h-full">
         <canvas
           ref={canvasRef}
           onMouseDown={startDrawing}
           onMouseMove={draw}
           onMouseUp={stopDrawing}
-          onMouseOut={stopDrawing}
-          className="cursor-crosshair bg-white"
+          onMouseLeave={stopDrawing}
+          className="cursor-crosshair"
         />
       </div>
     </div>

@@ -150,3 +150,45 @@ export const deleteWhiteboard = async (req, res) => {
     });
   }
 };
+
+// Star or unstar a whiteboard
+export const toggleStarWhiteboard = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isStarred } = req.body; // true to star, false to unstar
+    const userId = req.user._id;
+
+    const whiteboard = await Whiteboard.findById(id);
+    if (!whiteboard) {
+      return res.status(404).json({ message: "Whiteboard not found" });
+    }
+
+    // Only allow owner or collaborators to star
+    if (
+      whiteboard.owner.toString() !== userId.toString() &&
+      !whiteboard.collaborators.includes(userId)
+    ) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    if (isStarred) {
+      // Add user to starredBy if not already present
+      if (!whiteboard.starredBy.includes(userId)) {
+        whiteboard.starredBy.push(userId);
+      }
+    } else {
+      // Remove user from starredBy
+      whiteboard.starredBy = whiteboard.starredBy.filter(
+        (uid) => uid.toString() !== userId.toString()
+      );
+    }
+
+    await whiteboard.save();
+    res.json({
+      ...whiteboard.toObject(),
+      isStarred: whiteboard.starredBy.includes(userId),
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error starring whiteboard", error: error.message });
+  }
+};

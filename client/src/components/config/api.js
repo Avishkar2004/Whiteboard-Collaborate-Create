@@ -39,6 +39,7 @@ const API_ENDPOINTS = {
     getWhiteboard: `${API_URL}/api/whiteboards/`,
     update: `${API_URL}/api/whiteboards/`,
     delete: `${API_URL}/api/whiteboards/`,
+    star: `${API_URL}/api/whiteboards/star/`,
   },
 };
 
