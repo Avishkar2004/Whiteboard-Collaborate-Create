@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useAuthStore } from "../../hooks/useAuth";
 
 const API_URL = "http://localhost:5000";
 
@@ -17,8 +18,9 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // redirect to login page
+      useAuthStore.getState().reset();
       window.location.href = "/login";
+      window.location.reload();
     }
     return Promise.reject(error);
   }

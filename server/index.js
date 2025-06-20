@@ -27,10 +27,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Connect to Redis
-connectRedis.then((redisClient) => {
-  // Cache middleware
-  app.use(cacheMiddleware(redisClient, 60));
-});
+app.use(cacheMiddleware(redisClient, 60));
 
 // Routes
 app.use("/api/users", userRoutes);

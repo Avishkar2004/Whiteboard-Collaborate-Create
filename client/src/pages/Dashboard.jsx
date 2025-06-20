@@ -20,17 +20,15 @@ import {
   AccessTime as AccessTimeIcon,
   Star as StarFilledIcon,
 } from '@mui/icons-material';
-import axios from 'axios';
+import api, { API_ENDPOINTS } from '../components/config/api';
 import { useAuth } from '../hooks/useAuth';
-import { API_ENDPOINTS } from '../components/config/api';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { token, isAuthenticated } = useAuth();
   const [whiteboards, setWhiteboards] = useState([]);
   const [open, setOpen] = useState(false);
   const [newWhiteboard, setNewWhiteboard] = useState({ name: '', isPublic: false });
-  const [showMenu, setShowMenu] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('recent');
   const [filterBy, setFilterBy] = useState('all');
@@ -38,13 +36,13 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchWhiteboards();
-  }, []);
-
   const fetchWhiteboards = async () => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
     try {
-      const response = await axios.get(API_ENDPOINTS.whiteboard.myWhiteboards, {
+      const response = await api.get(API_ENDPOINTS.whiteboard.myWhiteboards, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setWhiteboards(Array.isArray(response.data) ? response.data : []);
@@ -54,9 +52,13 @@ const Dashboard = () => {
     }
   };
 
+  useEffect(() => {
+    fetchWhiteboards();
+  }, [isAuthenticated, navigate]);
+
   const handleCreateWhiteboard = async () => {
     try {
-      const response = await axios.post(
+      const response = await api.post(
         API_ENDPOINTS.whiteboard.create,
         newWhiteboard,
         {
@@ -74,9 +76,7 @@ const Dashboard = () => {
   };
 
   const handleWhiteboardClick = (whiteboardId) => {
-    if (showMenu !== whiteboardId) {
-      navigate(`/whiteboard/${whiteboardId}`);
-    }
+    navigate(`/whiteboard/${whiteboardId}`);
   };
 
   const filteredWhiteboards = whiteboards.filter(board => {
@@ -96,6 +96,13 @@ const Dashboard = () => {
     }
     return 0;
   });
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <h1 className="text-2xl font-bold text-red-600">Session expired or unauthorized. Please login again.</h1>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">

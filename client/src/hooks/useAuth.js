@@ -3,13 +3,26 @@ import { persist } from "zustand/middleware";
 import axios from "axios";
 import { API_ENDPOINTS } from "../components/config/api";
 
+const initialState = {
+  user: null,
+  token: null,
+};
+
 const useAuthStore = create(
   persist(
     (set) => ({
-      user: null,
-      token: null,
+      ...initialState,
       setAuth: (user, token) => set({ user, token }),
-      logout: () => set({ user: null, token: null }),
+      logout: () => {
+        set({ ...initialState });
+        localStorage.removeItem("auth-storage");
+        sessionStorage.removeItem("auth-storage");
+      },
+      reset: () => {
+        set({ ...initialState });
+        localStorage.removeItem("auth-storage");
+        sessionStorage.removeItem("auth-storage");
+      },
     }),
     {
       name: "auth-storage",
@@ -18,7 +31,7 @@ const useAuthStore = create(
 );
 
 export const useAuth = () => {
-  const { user, token, setAuth, logout } = useAuthStore();
+  const { user, token, setAuth, reset } = useAuthStore();
 
   const login = async (email, password) => {
     try {
@@ -58,18 +71,21 @@ export const useAuth = () => {
   const handleLogout = async () => {
     try {
       if (token) {
-        await axios.post(
-          API_ENDPOINTS.auth.logout,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        await axios.post(API_ENDPOINTS.auth.logout, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
       }
     } catch (error) {
       console.error("Logout error:", error);
-    } finally {
-      logout();
+      if (error.response?.status === 401) {
+        reset();
+        window.location.href = "/login";
+        window.location.reload();
+      }
     }
+    reset();
+    window.location.href = "/login";
+    window.location.reload();
   };
 
   return {
@@ -81,3 +97,5 @@ export const useAuth = () => {
     isAuthenticated: !!token,
   };
 };
+
+export { useAuthStore };

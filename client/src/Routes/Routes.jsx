@@ -10,14 +10,28 @@ import Layout from '../components/layout/Layout.jsx'
 import { useAuth } from '../hooks/useAuth'
 import Dashboard from '../pages/Dashboard.jsx'
 import CreateBoard from '../pages/CreateBoard.jsx'
+import Header from '../components/layout/Header.jsx'
+import Features from '../pages/Features.jsx'
+import Footer from '../components/layout/Footer.jsx'
 
 function AppRoutes() {
   const { user } = useAuth();
 
+  const showHeaderAndLanding = () => (
+    user ? <Navigate to="/home" /> : (
+      <>
+        <Header />
+        <Landing />
+        <Features />
+        <Footer />
+      </>
+    )
+  )
+
   return (
     <Routes>
       {/* Root route - Redirects based on auth status */}
-      <Route path="/" element={user ? <Navigate to="/home" /> : <Landing />} />
+      <Route path="/" element={showHeaderAndLanding()} />
 
       {/* Auth Routes */}
       <Route path="/login" element={user ? <Navigate to="/home" /> : <Login />} />

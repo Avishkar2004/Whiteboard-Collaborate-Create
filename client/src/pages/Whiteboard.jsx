@@ -10,8 +10,7 @@ import {
 } from '@mui/icons-material';
 import { io } from 'socket.io-client';
 import { useAuth } from '../hooks/useAuth';
-import axios from 'axios';
-import { API_ENDPOINTS } from '../components/config/api';
+import api, { API_ENDPOINTS } from '../components/config/api';
 
 const Whiteboard = () => {
   const { id } = useParams();
@@ -60,7 +59,7 @@ const Whiteboard = () => {
     // Load whiteboard content
     const loadWhiteboard = async () => {
       try {
-        const response = await axios.get(`${API_ENDPOINTS.whiteboard.get}/${id}`, {
+        const response = await api.get(`${API_ENDPOINTS.whiteboard.getWhiteboard}${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (response.data.content.elements) {
@@ -124,8 +123,8 @@ const Whiteboard = () => {
     try {
       const canvas = canvasRef.current;
       const imageData = canvas.toDataURL('image/png');
-      await axios.put(
-        `${API_ENDPOINTS.whiteboard.update}/${id}`,
+      await api.put(
+        `${API_ENDPOINTS.whiteboard.update}${id}`,
         { content: { imageData } },
         {
           headers: { Authorization: `Bearer ${token}` },

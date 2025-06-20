@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../components/config/api";
 import { API_ENDPOINTS } from "../components/config/api";
 import { useAuth } from "./useAuth";
 
@@ -14,7 +14,7 @@ const useWhiteboards = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get(API_ENDPOINTS.whiteboard.myWhiteboards, {
+      const response = await api.get(API_ENDPOINTS.whiteboard.myWhiteboards, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setWhiteboards(Array.isArray(response.data) ? response.data : []);
@@ -31,7 +31,7 @@ const useWhiteboards = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post(
+      const response = await api.post(
         API_ENDPOINTS.whiteboard.create,
         whiteboardData,
         {
@@ -54,8 +54,8 @@ const useWhiteboards = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.put(
-        `${API_ENDPOINTS.whiteboard.update}/${whiteboardId}`,
+      const response = await api.put(
+        `${API_ENDPOINTS.whiteboard.update}${whiteboardId}`,
         updateData,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -79,7 +79,7 @@ const useWhiteboards = () => {
     setLoading(true);
     setError(null);
     try {
-      await axios.delete(`${API_ENDPOINTS.whiteboard.delete}/${whiteboardId}`, {
+      await api.delete(`${API_ENDPOINTS.whiteboard.delete}${whiteboardId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setWhiteboards((prev) => prev.filter((wb) => wb._id !== whiteboardId));
@@ -97,8 +97,8 @@ const useWhiteboards = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post(
-        `${API_ENDPOINTS.whiteboard.share}/${whiteboardId}`,
+      const response = await api.post(
+        `${API_ENDPOINTS.whiteboard.share}${whiteboardId}`,
         shareData,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -119,8 +119,8 @@ const useWhiteboards = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.put(
-        `${API_ENDPOINTS.whiteboard.star}/${whiteboardId}`,
+      const response = await api.put(
+        `${API_ENDPOINTS.whiteboard.star}${whiteboardId}`,
         { isStarred },
         {
           headers: { Authorization: `Bearer ${token}` },
