@@ -24,7 +24,15 @@ export const getUserWhiteboards = async (req, res) => {
     const whiteboards = await Whiteboard.find({
       $or: [{ owner: req.user._id }, { collaborators: req.user._id }],
     }).sort({ lastModified: -1 });
-    res.json(whiteboards);
+
+    // Add isStarred property to each whiteboard
+    const whiteboardsWithStarStatus = whiteboards.map((whiteboard) => {
+      const whiteboardObj = whiteboard.toObject();
+      whiteboardObj.isStarred = whiteboard.starredBy.includes(req.user._id);
+      return whiteboardObj;
+    });
+
+    res.json(whiteboardsWithStarStatus);
   } catch (error) {
     res
       .status(500)
@@ -189,6 +197,23 @@ export const toggleStarWhiteboard = async (req, res) => {
       isStarred: whiteboard.starredBy.includes(userId),
     });
   } catch (error) {
-    res.status(500).json({ message: "Error starring whiteboard", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error starring whiteboard", error: error.message });
+  }
+};
+
+// Get all starred boards for a user
+export const getStarredBoards = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const starredBoards = await Whiteboard.find({ starredBy: userId }).sort({
+      lastModified: -1,
+    });
+    res.json(starredBoards);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error fetching starred boards", error: error.message });
   }
 };

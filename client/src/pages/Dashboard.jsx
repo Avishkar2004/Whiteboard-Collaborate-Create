@@ -17,42 +17,53 @@ import {
 } from 'lucide-react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
-import useWhiteboards from '../hooks/useWhiteboards';
+import useWhiteboardStore from '../store/whiteboardStore';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, token } = useAuth();
   const {
     whiteboards,
+    loading,
+    error,
     fetchWhiteboards,
     createWhiteboard,
     deleteWhiteboard,
     toggleStarWhiteboard,
-    loading,
-  } = useWhiteboards();
+  } = useWhiteboardStore();
 
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('recent');
-  const [filterBy, setFilterBy] = useState('all');
-
+  const [sortBy] = useState('recent');
+  const [filterBy] = useState('all');
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
   const [newWhiteboard, setNewWhiteboard] = useState({ name: '', isPublic: false });
-  const [error, setError] = useState(null);
+  const [localError, setLocalError] = useState(null);
 
   const [activeCardMenu, setActiveCardMenu] = useState(null);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [boardToDelete, setBoardToDelete] = useState(null);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchWhiteboards();
+    if (isAuthenticated && token) {
+      fetchWhiteboards(token);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, token]);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Active tab:', activeTab);
+    console.log('Whiteboards:', whiteboards);
+  }, [activeTab, whiteboards]);
 
   const handleStarToggle = async (e, boardId, isStarred) => {
     e.stopPropagation();
-    await toggleStarWhiteboard(boardId, !isStarred);
+    try {
+      await toggleStarWhiteboard(boardId, !isStarred, token);
+      // Zustand should handle state updates automatically, no need to refetch
+    } catch (err) {
+      setLocalError(err.message);
+    }
   };
 
   const openDeleteModal = (e, board) => {
@@ -64,18 +75,25 @@ const Dashboard = () => {
 
   const handleDeleteConfirm = async () => {
     if (boardToDelete) {
-      await deleteWhiteboard(boardToDelete._id);
-      setDeleteModalOpen(false);
-      setBoardToDelete(null);
+      try {
+        await deleteWhiteboard(boardToDelete._id, token);
+        setDeleteModalOpen(false);
+        setBoardToDelete(null);
+        // Refetch data after deletion
+        fetchWhiteboards(token);
+      } catch (err) {
+        setLocalError(err.message);
+      }
     }
   };
 
   const filteredAndSortedWhiteboards = useMemo(() => {
+    // Always use whiteboards array and filter based on isStarred property
     return whiteboards
       .filter(board => {
         // Tab filtering
-        if (activeTab === 'starred') return board.isStarred;
-        if (activeTab === 'shared') return board.owner !== isAuthenticated.id; // Example logic
+        if (activeTab === 'starred') return board.isStarred === true;
+        if (activeTab === 'shared') return board.owner !== isAuthenticated?.id;
         return true;
       })
       .filter(board => {
@@ -96,21 +114,21 @@ const Dashboard = () => {
         // Default to recent
         return new Date(b.lastModified) - new Date(a.lastModified);
       });
-  }, [whiteboards, activeTab, searchQuery, filterBy, sortBy]);
+  }, [whiteboards, activeTab, searchQuery, filterBy, sortBy, isAuthenticated?.id]);
 
   const handleCreateWhiteboard = async () => {
     try {
       // Basic validation
       if (!newWhiteboard.name.trim()) {
-        setError("Whiteboard name cannot be empty.");
+        setLocalError("Whiteboard name cannot be empty.");
         return;
       }
-      await createWhiteboard(newWhiteboard);
+      await createWhiteboard(newWhiteboard, token);
       setCreateModalOpen(false);
       setNewWhiteboard({ name: '', isPublic: false });
-      setError(null);
+      setLocalError(null);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create whiteboard');
+      setLocalError(err.message || 'Failed to create whiteboard');
     }
   };
 
@@ -149,8 +167,8 @@ const Dashboard = () => {
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === tab
-                  ? 'bg-indigo-50 text-indigo-600'
-                  : 'text-gray-600 hover:bg-indigo-50'
+                ? 'bg-indigo-50 text-indigo-600'
+                : 'text-gray-600 hover:bg-indigo-50'
                 }`}
             >
               {tab === 'all' && <LayoutDashboard className="h-5 w-5 mr-3" />}
@@ -186,6 +204,13 @@ const Dashboard = () => {
               New Whiteboard
             </button>
           </div>
+
+          {/* Error Display */}
+          {(error || localError) && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-600 text-sm">{error || localError}</p>
+            </div>
+          )}
 
           {/* Whiteboards Grid */}
           <AnimatePresence>
@@ -295,7 +320,7 @@ const Dashboard = () => {
             >
               <div className="p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">New Whiteboard</h2>
-                {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+                {localError && <p className="text-red-500 text-sm mb-4">{localError}</p>}
                 <input
                   type="text"
                   value={newWhiteboard.name}

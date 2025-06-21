@@ -7,6 +7,7 @@ import {
   getWhiteboard,
   toggleStarWhiteboard,
   updateWhiteboard,
+  getStarredBoards,
 } from "../controllers/whiteboardController.js";
 import auth from "../middleware/auth.js";
 
@@ -18,6 +19,9 @@ router.post("/", createWhiteboard);
 
 // Get all whiteboards for the authenticated user
 router.get("/my-whiteboards", getUserWhiteboards);
+
+// Get all starred boards
+router.get("/starred", getStarredBoards);
 
 // Get a specific whiteboard
 router.get("/:id", getWhiteboard);

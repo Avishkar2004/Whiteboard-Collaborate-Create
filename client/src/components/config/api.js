@@ -40,6 +40,8 @@ const API_ENDPOINTS = {
     update: `${API_URL}/api/whiteboards/`,
     delete: `${API_URL}/api/whiteboards/`,
     star: `${API_URL}/api/whiteboards/star/`,
+    save: `${API_URL}/api/whiteboards/`,
+    starredBoards: `${API_URL}/api/whiteboards/starred`,
   },
 };
 

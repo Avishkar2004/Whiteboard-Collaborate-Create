@@ -8,7 +8,7 @@ const useWhiteboards = () => {
   const [whiteboards, setWhiteboards] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
+  const [setStarredBoards] = useState([]);
   // Fetch all whiteboards
   const fetchWhiteboards = async () => {
     setLoading(true);
@@ -139,6 +139,26 @@ const useWhiteboards = () => {
     }
   };
 
+  // Fetch starred boards
+
+  const fetchStarredBoards = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await api.get(API_ENDPOINTS.whiteboard.starredBoards, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setStarredBoards(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      setError(
+        error.response?.data?.message || "Failed to fetch starred boards"
+      );
+      console.error("Error fetching starred boards:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     whiteboards,
     loading,
@@ -148,6 +168,7 @@ const useWhiteboards = () => {
     updateWhiteboard,
     deleteWhiteboard,
     shareWhiteboard,
+    fetchStarredBoards,
     toggleStarWhiteboard,
   };
 };

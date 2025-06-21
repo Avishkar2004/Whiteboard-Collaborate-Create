@@ -13,6 +13,7 @@ import CreateBoard from '../pages/CreateBoard.jsx'
 import Header from '../components/layout/Header.jsx'
 import Features from '../pages/Features.jsx'
 import Footer from '../components/layout/Footer.jsx'
+import StarredWhiteboards from '../pages/StarredWhiteboards.jsx'
 
 function AppRoutes() {
   const { user } = useAuth();
@@ -43,6 +44,7 @@ function AppRoutes() {
         <Route path="create-board" element={<CreateBoard />} />
         <Route path="your-dashboard" element={<YourDashboard />} />
         <Route path="whiteboard/:id" element={<Whiteboard />} />
+        <Route path="/starred" element={<StarredWhiteboards />} />
       </Route>
     </Routes>
   )
