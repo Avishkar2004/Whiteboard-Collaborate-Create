@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import api from '../components/config/api';
-import { API_ENDPOINTS } from '../components/config/api';
+import { create } from "zustand";
+import api from "../components/config/api";
+import { API_ENDPOINTS } from "../components/config/api";
 
 const useWhiteboardStore = create((set, get) => ({
   // State
@@ -25,7 +25,8 @@ const useWhiteboardStore = create((set, get) => ({
       set({ whiteboards, loading: false });
       return whiteboards;
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "Failed to fetch whiteboards";
+      const errorMessage =
+        error.response?.data?.message || "Failed to fetch whiteboards";
       set({ error: errorMessage, loading: false });
       console.error("Error fetching whiteboards:", error);
       throw error;
@@ -43,7 +44,8 @@ const useWhiteboardStore = create((set, get) => ({
       set({ starredBoards, loading: false });
       return starredBoards;
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "Failed to fetch starred boards";
+      const errorMessage =
+        error.response?.data?.message || "Failed to fetch starred boards";
       set({ error: errorMessage, loading: false });
       console.error("Error fetching starred boards:", error);
       throw error;
@@ -63,11 +65,12 @@ const useWhiteboardStore = create((set, get) => ({
       );
       set((state) => ({
         whiteboards: [...state.whiteboards, response.data],
-        loading: false
+        loading: false,
       }));
       return response.data;
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "Failed to create whiteboard";
+      const errorMessage =
+        error.response?.data?.message || "Failed to create whiteboard";
       set({ error: errorMessage, loading: false });
       console.error("Error creating whiteboard:", error);
       throw error;
@@ -86,17 +89,18 @@ const useWhiteboardStore = create((set, get) => ({
         }
       );
       set((state) => ({
-        whiteboards: state.whiteboards.map((wb) => 
+        whiteboards: state.whiteboards.map((wb) =>
           wb._id === whiteboardId ? response.data : wb
         ),
-        starredBoards: state.starredBoards.map((wb) => 
+        starredBoards: state.starredBoards.map((wb) =>
           wb._id === whiteboardId ? response.data : wb
         ),
-        loading: false
+        loading: false,
       }));
       return response.data;
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "Failed to update whiteboard";
+      const errorMessage =
+        error.response?.data?.message || "Failed to update whiteboard";
       set({ error: errorMessage, loading: false });
       console.error("Error updating whiteboard:", error);
       throw error;
@@ -112,11 +116,14 @@ const useWhiteboardStore = create((set, get) => ({
       });
       set((state) => ({
         whiteboards: state.whiteboards.filter((wb) => wb._id !== whiteboardId),
-        starredBoards: state.starredBoards.filter((wb) => wb._id !== whiteboardId),
-        loading: false
+        starredBoards: state.starredBoards.filter(
+          (wb) => wb._id !== whiteboardId
+        ),
+        loading: false,
       }));
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "Failed to delete whiteboard";
+      const errorMessage =
+        error.response?.data?.message || "Failed to delete whiteboard";
       set({ error: errorMessage, loading: false });
       console.error("Error deleting whiteboard:", error);
       throw error;
@@ -134,41 +141,49 @@ const useWhiteboardStore = create((set, get) => ({
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      
+
       // Update both whiteboards and starredBoards arrays
       set((state) => {
         // Update whiteboards array - update the isStarred property
-        const updatedWhiteboards = state.whiteboards.map((wb) => 
+        const updatedWhiteboards = state.whiteboards.map((wb) =>
           wb._id === whiteboardId ? { ...wb, isStarred: isStarred } : wb
         );
-        
+
         // Update starredBoards array
         let updatedStarredBoards;
         if (isStarred) {
           // Add to starredBoards if not already present
-          const exists = state.starredBoards.some(wb => wb._id === whiteboardId);
+          const exists = state.starredBoards.some(
+            (wb) => wb._id === whiteboardId
+          );
           if (!exists) {
-            updatedStarredBoards = [...state.starredBoards, { ...response.data, isStarred: true }];
+            updatedStarredBoards = [
+              ...state.starredBoards,
+              { ...response.data, isStarred: true },
+            ];
           } else {
-            updatedStarredBoards = state.starredBoards.map(wb => 
+            updatedStarredBoards = state.starredBoards.map((wb) =>
               wb._id === whiteboardId ? { ...wb, isStarred: true } : wb
             );
           }
         } else {
           // Remove from starredBoards
-          updatedStarredBoards = state.starredBoards.filter((wb) => wb._id !== whiteboardId);
+          updatedStarredBoards = state.starredBoards.filter(
+            (wb) => wb._id !== whiteboardId
+          );
         }
-        
+
         return {
           whiteboards: updatedWhiteboards,
           starredBoards: updatedStarredBoards,
-          loading: false
+          loading: false,
         };
       });
-      
+
       return response.data;
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "Failed to update star status";
+      const errorMessage =
+        error.response?.data?.message || "Failed to update star status";
       set({ error: errorMessage, loading: false });
       console.error("Error updating star status:", error);
       throw error;
@@ -189,7 +204,8 @@ const useWhiteboardStore = create((set, get) => ({
       set({ loading: false });
       return response.data;
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "Failed to share whiteboard";
+      const errorMessage =
+        error.response?.data?.message || "Failed to share whiteboard";
       set({ error: errorMessage, loading: false });
       console.error("Error sharing whiteboard:", error);
       throw error;
@@ -199,11 +215,22 @@ const useWhiteboardStore = create((set, get) => ({
   // Get starred boards from whiteboards array (for filtering)
   getStarredBoards: () => {
     const { whiteboards } = get();
-    return whiteboards.filter(board => board.isStarred);
+    return whiteboards.filter((board) => board.isStarred);
+  },
+
+  // Get recent boards from whiteboards array (for filtering)
+  getRecentBoards: (days = 7) => {
+    const { whiteboards } = get();
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+
+    return whiteboards
+      .filter((board) => new Date(board.lastModified) >= cutoffDate)
+      .sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified));
   },
 
   // Clear all data
   clearData: () => set({ whiteboards: [], starredBoards: [], error: null }),
 }));
 
-export default useWhiteboardStore; 
+export default useWhiteboardStore;
