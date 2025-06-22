@@ -525,8 +525,6 @@ export const getSharedElements = async (req, res) => {
     const userId = req.user._id;
     const { type = "received" } = req.query; // 'received', 'shared', 'public', 'private'
 
-    console.log("getSharedElements called with:", { userId, type });
-
     // Check if SharedElement model exists
     if (!SharedElement) {
       console.error("SharedElement model is not defined");
@@ -567,7 +565,7 @@ export const getSharedElements = async (req, res) => {
       .populate("sourceWhiteboard", "name")
       .sort({ createdAt: -1 });
 
-    console.log("Found shared elements:", sharedElements.length);
+    // console.log("Found shared elements:", sharedElements.length);
 
     res.json({
       success: true,
