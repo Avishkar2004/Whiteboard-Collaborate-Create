@@ -11,6 +11,13 @@ import {
   shareWhiteboard,
   removeCollaborator,
   getCollaborators,
+  shareElements,
+  getSharedElements,
+  getSharedElement,
+  deleteSharedElement,
+  updateSharedElement,
+  syncSharedElement,
+  testSharedElement,
 } from "../controllers/whiteboardController.js";
 import auth from "../middleware/auth.js";
 
@@ -26,14 +33,29 @@ router.get("/my-whiteboards", getUserWhiteboards);
 // Get all starred boards
 router.get("/starred", getStarredBoards);
 
-// Get a specific whiteboard
-router.get("/:id", getWhiteboard);
+// Get shared elements (MUST come before /:id routes)
+router.get("/shared-elements", getSharedElements);
 
-// Update whiteboard content
-router.put("/:id", updateWhiteboard);
+// Test SharedElement model
+router.get("/test-shared-element", testSharedElement);
 
-// Delete whiteboard
-router.delete("/:id", deleteWhiteboard);
+// Get a specific shared element
+router.get("/shared-elements/:id", getSharedElement);
+
+// Update a shared element
+router.put("/shared-elements/:id", updateSharedElement);
+
+// Sync a shared element with source whiteboard
+router.post("/shared-elements/:id/sync", syncSharedElement);
+
+// Delete a shared element
+router.delete("/shared-elements/:id", deleteSharedElement);
+
+// Get whiteboard collaborators
+router.get("/collaborators/:id", getCollaborators);
+
+// Share specific elements from a whiteboard
+router.post("/share-elements/:id", shareElements);
 
 // Star or unstar a whiteboard
 router.put("/star/:id", toggleStarWhiteboard);
@@ -44,7 +66,13 @@ router.post("/share/:id", shareWhiteboard);
 // Remove collaborator from whiteboard
 router.delete("/collaborator/:id", removeCollaborator);
 
-// Get whiteboard collaborators
-router.get("/collaborators/:id", getCollaborators);
+// Get a specific whiteboard (MUST come after specific routes)
+router.get("/:id", getWhiteboard);
+
+// Update whiteboard content
+router.put("/:id", updateWhiteboard);
+
+// Delete whiteboard
+router.delete("/:id", deleteWhiteboard);
 
 export default router;

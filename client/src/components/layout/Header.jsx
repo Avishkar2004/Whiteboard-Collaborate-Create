@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Pencil, Users, FolderOpen, LogIn, UserPlus } from 'lucide-react';
+import { Pencil, Users, FolderOpen, LogIn, UserPlus, Share2 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { motion as Motion } from 'framer-motion';
 
@@ -41,11 +41,18 @@ const Header = () => {
                         <span>My Boards</span>
                     </Link>
                     <Link
-                        to="/shared"
+                        to="/shared-elements"
+                        className="px-3 py-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors flex items-center gap-2"
+                    >
+                        <Share2 className="w-4 h-4" />
+                        <span>Shared Elements</span>
+                    </Link>
+                    <Link
+                        to="/recent"
                         className="px-3 py-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors flex items-center gap-2"
                     >
                         <Users className="w-4 h-4" />
-                        <span>Shared</span>
+                        <span>Recent</span>
                     </Link>
                 </nav>
 

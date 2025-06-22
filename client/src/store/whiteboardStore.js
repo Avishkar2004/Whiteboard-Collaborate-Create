@@ -201,15 +201,15 @@ const useWhiteboardStore = create((set, get) => ({
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      
+
       // Update the whiteboard in the store with new collaborator info
       set((state) => ({
-        whiteboards: state.whiteboards.map((wb) => 
+        whiteboards: state.whiteboards.map((wb) =>
           wb._id === whiteboardId ? response.data.whiteboard : wb
         ),
-        loading: false
+        loading: false,
       }));
-      
+
       return response.data;
     } catch (error) {
       const errorMessage =
@@ -228,18 +228,18 @@ const useWhiteboardStore = create((set, get) => ({
         `${API_ENDPOINTS.whiteboard.removeCollaborator}${whiteboardId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-          data: { collaboratorId }
+          data: { collaboratorId },
         }
       );
-      
+
       // Update the whiteboard in the store
       set((state) => ({
-        whiteboards: state.whiteboards.map((wb) => 
+        whiteboards: state.whiteboards.map((wb) =>
           wb._id === whiteboardId ? response.data.whiteboard : wb
         ),
-        loading: false
+        loading: false,
       }));
-      
+
       return response.data;
     } catch (error) {
       const errorMessage =
@@ -267,6 +267,112 @@ const useWhiteboardStore = create((set, get) => ({
         error.response?.data?.message || "Failed to fetch collaborators";
       set({ error: errorMessage, loading: false });
       console.error("Error fetching collaborators:", error);
+      throw error;
+    }
+  },
+
+  // Share specific elements from a whiteboard
+  shareElements: async (whiteboardId, shareData, token) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await api.post(
+        `${API_ENDPOINTS.whiteboard.shareElements}${whiteboardId}`,
+        shareData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      set({ loading: false });
+      return response.data;
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to share elements";
+      set({ error: errorMessage, loading: false });
+      console.error("Error sharing elements:", error);
+      throw error;
+    }
+  },
+
+  // Get shared elements
+  getSharedElements: async (type = "received", token) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await api.get(
+        `${API_ENDPOINTS.whiteboard.getSharedElements}?type=${type}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      set({ loading: false });
+      return response.data;
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to fetch shared elements";
+      set({ error: errorMessage, loading: false });
+      console.error("Error fetching shared elements:", error);
+      throw error;
+    }
+  },
+
+  // Get a specific shared element
+  getSharedElement: async (sharedElementId, token) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await api.get(
+        `${API_ENDPOINTS.whiteboard.getSharedElement}${sharedElementId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      set({ loading: false });
+      return response.data;
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to fetch shared element";
+      set({ error: errorMessage, loading: false });
+      console.error("Error fetching shared element:", error);
+      throw error;
+    }
+  },
+
+  // Update a shared element
+  updateSharedElement: async (sharedElementId, updateData, token) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await api.put(
+        `${API_ENDPOINTS.whiteboard.updateSharedElement}${sharedElementId}`,
+        updateData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      set({ loading: false });
+      return response.data;
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to update shared element";
+      set({ error: errorMessage, loading: false });
+      console.error("Error updating shared element:", error);
+      throw error;
+    }
+  },
+
+  // Delete a shared element
+  deleteSharedElement: async (sharedElementId, token) => {
+    set({ loading: true, error: null });
+    try {
+      await api.delete(
+        `${API_ENDPOINTS.whiteboard.deleteSharedElement}${sharedElementId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      set({ loading: false });
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to delete shared element";
+      set({ error: errorMessage, loading: false });
+      console.error("Error deleting shared element:", error);
       throw error;
     }
   },

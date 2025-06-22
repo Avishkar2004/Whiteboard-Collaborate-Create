@@ -12,10 +12,12 @@ import {
   User,
   Calendar,
   Edit3,
+  Share2,
 } from 'lucide-react';
 import { io } from 'socket.io-client';
 import { useAuth } from '../hooks/useAuth';
 import api, { API_ENDPOINTS } from '../components/config/api';
+import ShareElementsModal from '../components/ShareElementsModal';
 
 const Whiteboard = () => {
   const { id } = useParams();
@@ -25,6 +27,7 @@ const Whiteboard = () => {
   const contextRef = useRef(null);
   const [socket, setSocket] = useState(null);
   const [whiteboardInfo, setWhiteboardInfo] = useState(null);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const [isDrawing, setIsDrawing] = useState(false);
   const [tool, setTool] = useState('brush');
@@ -276,6 +279,13 @@ const Whiteboard = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setShowShareModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <Share2 className="w-4 h-4" />
+              <span>Share Elements</span>
+            </button>
             <button onClick={saveWhiteboard} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
               <Save className="w-4 h-4" />
               <span>Save</span>
@@ -298,6 +308,14 @@ const Whiteboard = () => {
           className="cursor-crosshair"
         />
       </div>
+
+      {/* Share Elements Modal */}
+      <ShareElementsModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        whiteboard={whiteboardInfo}
+        drawingHistory={drawingHistory}
+      />
     </div>
   );
 };

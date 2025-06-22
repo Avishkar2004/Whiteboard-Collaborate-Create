@@ -15,6 +15,7 @@ import Features from '../pages/Features.jsx'
 import Footer from '../components/layout/Footer.jsx'
 import StarredWhiteboards from '../pages/StarredWhiteboards.jsx'
 import RecentWhiteboards from '../pages/RecentWhiteboards.jsx'
+import SharedElements from '../pages/SharedElements.jsx'
 
 function AppRoutes() {
   const { user } = useAuth();
@@ -47,7 +48,11 @@ function AppRoutes() {
         <Route path="whiteboard/:id" element={<Whiteboard />} />
         <Route path="/starred" element={<StarredWhiteboards />} />
         <Route path="/recent" element={<RecentWhiteboards />} />
+        <Route path="/shared-elements" element={<SharedElements />} />
       </Route>
+
+      {/* Catch all route */}
+      <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   )
 }

@@ -45,6 +45,12 @@ const API_ENDPOINTS = {
     share: `${API_URL}/api/whiteboards/share/`,
     removeCollaborator: `${API_URL}/api/whiteboards/collaborator/`,
     getCollaborators: `${API_URL}/api/whiteboards/collaborators/`,
+    shareElements: `${API_URL}/api/whiteboards/share-elements/`,
+    getSharedElements: `${API_URL}/api/whiteboards/shared-elements`,
+    getSharedElement: `${API_URL}/api/whiteboards/shared-elements/`,
+    updateSharedElement: `${API_URL}/api/whiteboards/shared-elements/`,
+    deleteSharedElement: `${API_URL}/api/whiteboards/shared-elements/`,
+    handleSync: `${API_URL}/api/whiteboards/shared-elements/`,
   },
 };
 
