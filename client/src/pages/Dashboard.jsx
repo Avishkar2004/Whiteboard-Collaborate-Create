@@ -14,14 +14,17 @@ import {
   MoreHorizontal,
   FileWarning,
   X,
+  Share2,
 } from 'lucide-react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import useWhiteboardStore from '../store/whiteboardStore';
+import ShareModal from '../components/ShareModal';
+import { CardLoader } from '../components/Loader';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated, token, user } = useAuth();
   const {
     whiteboards,
     loading,
@@ -43,6 +46,8 @@ const Dashboard = () => {
   const [activeCardMenu, setActiveCardMenu] = useState(null);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [boardToDelete, setBoardToDelete] = useState(null);
+  const [isShareModalOpen, setShareModalOpen] = useState(false);
+  const [boardToShare, setBoardToShare] = useState(null);
 
   useEffect(() => {
     if (isAuthenticated && token) {
@@ -85,6 +90,18 @@ const Dashboard = () => {
         setLocalError(err.message);
       }
     }
+  };
+
+  const openShareModal = (e, board) => {
+    e.stopPropagation();
+    setBoardToShare(board);
+    setShareModalOpen(true);
+    setActiveCardMenu(null);
+  };
+
+  const closeShareModal = () => {
+    setShareModalOpen(false);
+    setBoardToShare(null);
   };
 
   const filteredAndSortedWhiteboards = useMemo(() => {
@@ -215,7 +232,7 @@ const Dashboard = () => {
           {/* Whiteboards Grid */}
           <AnimatePresence>
             {loading ? (
-              <p>Loading boards...</p>
+              <CardLoader text="Loading whiteboards..." />
             ) : filteredAndSortedWhiteboards.length > 0 ? (
               <Motion.div
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
@@ -261,15 +278,28 @@ const Dashboard = () => {
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
-                                className="absolute right-0 mt-2 w-32 bg-white rounded-md shadow-lg border z-10"
+                                className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg border z-10"
                               >
-                                <button
-                                  onClick={(e) => openDeleteModal(e, board)}
-                                  className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                  Delete
-                                </button>
+                                {/* Share option - only for owners */}
+                                {board.owner === user?.id && (
+                                  <button
+                                    onClick={(e) => openShareModal(e, board)}
+                                    className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-50"
+                                  >
+                                    <Share2 className="w-4 h-4" />
+                                    Share
+                                  </button>
+                                )}
+                                {/* Delete option - only for owners */}
+                                {board.owner === user?.id && (
+                                  <button
+                                    onClick={(e) => openDeleteModal(e, board)}
+                                    className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                    Delete
+                                  </button>
+                                )}
                               </Motion.div>
                             )}
                           </AnimatePresence>
@@ -380,6 +410,17 @@ const Dashboard = () => {
               </div>
             </Motion.div>
           </Motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Share Modal */}
+      <AnimatePresence>
+        {isShareModalOpen && (
+          <ShareModal
+            isOpen={isShareModalOpen}
+            onClose={closeShareModal}
+            whiteboard={boardToShare}
+          />
         )}
       </AnimatePresence>
 

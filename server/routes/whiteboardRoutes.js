@@ -8,6 +8,9 @@ import {
   toggleStarWhiteboard,
   updateWhiteboard,
   getStarredBoards,
+  shareWhiteboard,
+  removeCollaborator,
+  getCollaborators,
 } from "../controllers/whiteboardController.js";
 import auth from "../middleware/auth.js";
 
@@ -34,5 +37,14 @@ router.delete("/:id", deleteWhiteboard);
 
 // Star or unstar a whiteboard
 router.put("/star/:id", toggleStarWhiteboard);
+
+// Share whiteboard with another user
+router.post("/share/:id", shareWhiteboard);
+
+// Remove collaborator from whiteboard
+router.delete("/collaborator/:id", removeCollaborator);
+
+// Get whiteboard collaborators
+router.get("/collaborators/:id", getCollaborators);
 
 export default router;

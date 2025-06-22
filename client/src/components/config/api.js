@@ -42,6 +42,9 @@ const API_ENDPOINTS = {
     star: `${API_URL}/api/whiteboards/star/`,
     save: `${API_URL}/api/whiteboards/`,
     starredBoards: `${API_URL}/api/whiteboards/starred`,
+    share: `${API_URL}/api/whiteboards/share/`,
+    removeCollaborator: `${API_URL}/api/whiteboards/collaborator/`,
+    getCollaborators: `${API_URL}/api/whiteboards/collaborators/`,
   },
 };
 

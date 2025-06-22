@@ -201,13 +201,72 @@ const useWhiteboardStore = create((set, get) => ({
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      set({ loading: false });
+      
+      // Update the whiteboard in the store with new collaborator info
+      set((state) => ({
+        whiteboards: state.whiteboards.map((wb) => 
+          wb._id === whiteboardId ? response.data.whiteboard : wb
+        ),
+        loading: false
+      }));
+      
       return response.data;
     } catch (error) {
       const errorMessage =
         error.response?.data?.message || "Failed to share whiteboard";
       set({ error: errorMessage, loading: false });
       console.error("Error sharing whiteboard:", error);
+      throw error;
+    }
+  },
+
+  // Remove collaborator from whiteboard
+  removeCollaborator: async (whiteboardId, collaboratorId, token) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await api.delete(
+        `${API_ENDPOINTS.whiteboard.removeCollaborator}${whiteboardId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          data: { collaboratorId }
+        }
+      );
+      
+      // Update the whiteboard in the store
+      set((state) => ({
+        whiteboards: state.whiteboards.map((wb) => 
+          wb._id === whiteboardId ? response.data.whiteboard : wb
+        ),
+        loading: false
+      }));
+      
+      return response.data;
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to remove collaborator";
+      set({ error: errorMessage, loading: false });
+      console.error("Error removing collaborator:", error);
+      throw error;
+    }
+  },
+
+  // Get whiteboard collaborators
+  getCollaborators: async (whiteboardId, token) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await api.get(
+        `${API_ENDPOINTS.whiteboard.getCollaborators}${whiteboardId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      set({ loading: false });
+      return response.data;
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to fetch collaborators";
+      set({ error: errorMessage, loading: false });
+      console.error("Error fetching collaborators:", error);
       throw error;
     }
   },

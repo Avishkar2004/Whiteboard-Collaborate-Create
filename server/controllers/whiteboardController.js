@@ -1,4 +1,5 @@
 import Whiteboard from "../models/Whiteboard.js";
+import User from "../models/User.js";
 
 // Create a new whiteboard
 export const createWhiteboard = async (req, res) => {
@@ -215,5 +216,179 @@ export const getStarredBoards = async (req, res) => {
     res
       .status(500)
       .json({ message: "Error fetching starred boards", error: error.message });
+  }
+};
+
+// Share whiteboard with another user
+export const shareWhiteboard = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { collaboratorEmail } = req.body;
+    const userId = req.user._id;
+
+    // Validate whiteboard ID
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid whiteboard ID format",
+      });
+    }
+
+    const whiteboard = await Whiteboard.findById(id);
+    if (!whiteboard) {
+      return res.status(404).json({
+        success: false,
+        message: "Whiteboard not found",
+      });
+    }
+
+    // Only owner can share
+    if (whiteboard.owner.toString() !== userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Only the owner can share this whiteboard",
+      });
+    }
+
+    // Find user by email
+    const collaborator = await User.findOne({ email: collaboratorEmail });
+    if (!collaborator) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found with this email",
+      });
+    }
+
+    // Can't share with yourself
+    if (collaborator._id.toString() === userId.toString()) {
+      return res.status(400).json({
+        success: false,
+        message: "You cannot share a whiteboard with yourself",
+      });
+    }
+
+    // Check if already shared
+    if (whiteboard.collaborators.includes(collaborator._id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Whiteboard is already shared with this user",
+      });
+    }
+
+    // Add collaborator
+    whiteboard.collaborators.push(collaborator._id);
+    await whiteboard.save();
+
+    // Return updated whiteboard with collaborator info
+    const updatedWhiteboard = await Whiteboard.findById(id)
+      .populate("collaborators", "username email")
+      .populate("owner", "username email");
+
+    res.json({
+      success: true,
+      message: `Whiteboard shared successfully with ${collaborator.username}`,
+      whiteboard: updatedWhiteboard,
+    });
+  } catch (error) {
+    console.error("Error in shareWhiteboard:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error sharing whiteboard",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+};
+
+// Remove collaborator from whiteboard
+export const removeCollaborator = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { collaboratorId } = req.body;
+    const userId = req.user._id;
+
+    const whiteboard = await Whiteboard.findById(id);
+    if (!whiteboard) {
+      return res.status(404).json({
+        success: false,
+        message: "Whiteboard not found",
+      });
+    }
+
+    // Only owner can remove collaborators
+    if (whiteboard.owner.toString() !== userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Only the owner can remove collaborators",
+      });
+    }
+
+    // Remove collaborator
+    whiteboard.collaborators = whiteboard.collaborators.filter(
+      (cid) => cid.toString() !== collaboratorId
+    );
+    await whiteboard.save();
+
+    // Return updated whiteboard
+    const updatedWhiteboard = await Whiteboard.findById(id)
+      .populate("collaborators", "username email")
+      .populate("owner", "username email");
+
+    res.json({
+      success: true,
+      message: "Collaborator removed successfully",
+      whiteboard: updatedWhiteboard,
+    });
+  } catch (error) {
+    console.error("Error in removeCollaborator:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error removing collaborator",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+};
+
+// Get whiteboard collaborators
+export const getCollaborators = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user._id;
+
+    const whiteboard = await Whiteboard.findById(id)
+      .populate("collaborators", "username email")
+      .populate("owner", "username email");
+
+    if (!whiteboard) {
+      return res.status(404).json({
+        success: false,
+        message: "Whiteboard not found",
+      });
+    }
+
+    // Check if user has access
+    if (
+      whiteboard.owner.toString() !== userId.toString() &&
+      !whiteboard.collaborators.some(
+        (c) => c._id.toString() === userId.toString()
+      )
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied to get collaborators",
+      });
+    }
+
+    res.json({
+      success: true,
+      collaborators: whiteboard.collaborators,
+      owner: whiteboard.owner,
+    });
+  } catch (error) {
+    console.error("Error in getCollaborators:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching collaborators",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
   }
 };

@@ -264,7 +264,6 @@ const RecentWhiteboards = () => {
                                         <div className="flex items-center gap-2 text-xs text-gray-400">
                                             <Calendar className="h-3 w-3" />
                                             <span>{formatTimeAgo(board.lastModified)}</span>
-                                            <span>{board.lastModified}</span>
                                         </div>
                                     </div>
                                 </Motion.div>

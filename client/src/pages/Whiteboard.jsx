@@ -231,7 +231,7 @@ const Whiteboard = () => {
             <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
               <div className="flex items-center gap-1">
                 <User className="w-3 h-3" />
-                <span>{whiteboardInfo?.owner?.username || 'Unknown'}</span>
+                <span>{user.username || 'Unknown'}</span>
               </div>
               <div className="flex items-center gap-1">
                 <Calendar className="w-3 h-3" />

@@ -4,6 +4,7 @@ import { Globe, Lock } from 'lucide-react';
 import { motion as Motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import useWhiteboardStore from '../store/whiteboardStore';
+import { PageLoader } from '../components/Loader';
 
 
 const StarredWhiteboards = () => {
@@ -24,7 +25,7 @@ const StarredWhiteboards = () => {
 
 
 
-    if (loading) return <p>Loading starred boards...</p>;
+    if (loading) return <PageLoader text="Loading starred whiteboards..." />;
     if (error) return <p>Error: {error}</p>;
 
     if (!Array.isArray(starredBoards) || starredBoards.length === 0) {
