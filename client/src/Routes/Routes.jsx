@@ -9,7 +9,6 @@ import PrivateRoute from '../components/auth/PrivateRoute.jsx'
 import Layout from '../components/layout/Layout.jsx'
 import { useAuth } from '../hooks/useAuth'
 import Dashboard from '../pages/Dashboard.jsx'
-import CreateBoard from '../pages/CreateBoard.jsx'
 import Header from '../components/layout/Header.jsx'
 import Features from '../pages/Features.jsx'
 import Footer from '../components/layout/Footer.jsx'
@@ -43,7 +42,6 @@ function AppRoutes() {
       {/* Protected Routes */}
       <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
         <Route path="home" element={<Dashboard />} />
-        <Route path="create-board" element={<CreateBoard />} />
         <Route path="your-dashboard" element={<YourDashboard />} />
         <Route path="whiteboard/:id" element={<Whiteboard />} />
         <Route path="/starred" element={<StarredWhiteboards />} />

@@ -4,14 +4,9 @@ import {
     Share2,
     CheckSquare,
     Square,
-    Tag,
-    Users,
-    Globe,
-    Lock,
+
     CheckCircle,
     AlertCircle,
-    Eye,
-    EyeOff
 } from 'lucide-react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';

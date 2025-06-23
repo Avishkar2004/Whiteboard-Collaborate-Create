@@ -5,6 +5,7 @@ import "dotenv/config";
 import { connectRedis, redisClient } from "./config/redis.js";
 import cacheMiddleware from "./middleware/redisCache.js";
 import connectDB from "./config/db.js";
+import { Server } from "socket.io";
 
 // Import routes
 import userRoutes from "./routes/userRoutes.js";
@@ -17,8 +18,8 @@ const server = http.createServer(app);
 // Middleware
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
@@ -32,6 +33,32 @@ app.use(cacheMiddleware(redisClient, 60));
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/whiteboards", whiteboardRoutes);
+
+// Socket.IO server
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
+
+io.on("connection", (socket) => {
+  console.log("A user connected:", socket.id);
+
+  socket.on("joinWhiteboard", (boardId) => {
+    socket.join(boardId);
+    console.log(`User ${socket.id} joined whiteboard ${boardId}`);
+  });
+
+  socket.on("whiteboardUpdate", ({ boardId, data }) => {
+    socket.to(boardId).emit("whiteboardUpdate", data);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+  });
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {

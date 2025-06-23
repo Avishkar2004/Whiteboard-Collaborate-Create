@@ -224,7 +224,7 @@ const RecentWhiteboards = () => {
                                                             className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg border z-10"
                                                         >
                                                             {/* Share option - only for owners */}
-                                                            {board.owner === user?.id && (
+                                                            {board.owner?.toString() === user?.id && (
                                                                 <button
                                                                     onClick={(e) => openShareModal(e, board)}
                                                                     className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-50"
@@ -234,7 +234,7 @@ const RecentWhiteboards = () => {
                                                                 </button>
                                                             )}
                                                             {/* Delete option - only for owners */}
-                                                            {board.owner === user?.id && (
+                                                            {board.owner?.toString() === user?.id && (
                                                                 <button
                                                                     onClick={(e) => openDeleteModal(e, board)}
                                                                     className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"

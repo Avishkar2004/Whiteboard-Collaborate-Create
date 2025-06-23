@@ -39,17 +39,6 @@ const Layout = () => {
           <div className="flex items-center gap-4">
             {user ? (
               <>
-                {/* Quick Actions */}
-                <div className="hidden md:flex items-center gap-2">
-                  <button
-                    onClick={() => navigate('/create-board')}
-                    className="px-4 py-2 bg-gradient-to-tr from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-sm rounded-lg flex items-center gap-2 shadow-md hover:shadow-lg transition-all duration-200 group"
-                  >
-                    <PlusCircle className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
-                    <span>New Whiteboard</span>
-                  </button>
-                </div>
-
                 {/* Navigation Links */}
                 <div className="hidden md:flex items-center gap-1">
                   <Link
@@ -147,7 +136,7 @@ const Layout = () => {
                         <span>Settings</span>
                       </Link>
                       <div className="border-t border-gray-200 my-1"></div>
-                      <button 
+                      <button
                         onClick={handleLogout}
                         className="w-full flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"
                       >

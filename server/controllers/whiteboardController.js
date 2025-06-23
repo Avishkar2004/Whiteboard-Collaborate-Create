@@ -397,13 +397,13 @@ export const getCollaborators = async (req, res) => {
       });
     }
 
-    // Check if user has access
-    if (
-      whiteboard.owner.toString() !== userId.toString() &&
-      !whiteboard.collaborators.some(
-        (c) => c._id.toString() === userId.toString()
-      )
-    ) {
+    // Check if user has access - convert both to strings for comparison
+    const isOwner = whiteboard.owner._id.toString() === userId.toString();
+    const isCollaborator = whiteboard.collaborators.some(
+      (c) => c._id.toString() === userId.toString()
+    );
+
+    if (!isOwner && !isCollaborator) {
       return res.status(403).json({
         success: false,
         message: "Access denied to get collaborators",
@@ -557,7 +557,7 @@ export const getSharedElements = async (req, res) => {
         };
     }
 
-    console.log("Query:", JSON.stringify(query, null, 2));
+    // console.log("Query:", JSON.stringify(query, null, 2));
 
     const sharedElements = await SharedElement.find(query)
       .populate("sharedBy", "username email")

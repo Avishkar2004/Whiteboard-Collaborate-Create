@@ -78,7 +78,7 @@ const ShareModal = ({ isOpen, onClose, whiteboard }) => {
     }
   };
 
-  const isOwner = user?.id === whiteboard?.owner;
+  const isOwner = user?.id === whiteboard?.owner?.toString()
 
   if (!isOpen || !whiteboard) return null;
 
