@@ -6,6 +6,7 @@ import { connectRedis, redisClient } from "./config/redis.js";
 import cacheMiddleware from "./middleware/redisCache.js";
 import connectDB from "./config/db.js";
 import { Server } from "socket.io";
+import morgan from "morgan";
 
 // Import routes
 import userRoutes from "./routes/userRoutes.js";
@@ -24,6 +25,7 @@ app.use(
     credentials: true,
   })
 );
+app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
