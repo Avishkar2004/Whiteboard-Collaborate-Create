@@ -173,26 +173,26 @@ const SharedElements = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-6 sm:py-8">
                 {/* Header */}
                 <div className="mb-8">
                     <div className="flex items-center gap-3 mb-4">
                         <Share2 className="h-8 w-8 text-indigo-600" />
-                        <h1 className="text-3xl font-bold text-gray-900">Shared Elements</h1>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Shared Elements</h1>
                     </div>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 text-sm sm:text-base">
                         View and manage elements shared with you or by you
                     </p>
                 </div>
 
                 {/* Filters */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-6">
                     <div className="flex flex-col lg:flex-row gap-4">
                         {/* Filter Type */}
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
                             <button
                                 onClick={() => setFilterType('received')}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filterType === 'received'
+                                className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${filterType === 'received'
                                     ? 'bg-indigo-100 text-indigo-700'
                                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                     }`}
@@ -201,7 +201,7 @@ const SharedElements = () => {
                             </button>
                             <button
                                 onClick={() => setFilterType('shared')}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filterType === 'shared'
+                                className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${filterType === 'shared'
                                     ? 'bg-indigo-100 text-indigo-700'
                                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                     }`}
@@ -210,7 +210,7 @@ const SharedElements = () => {
                             </button>
                             <button
                                 onClick={() => setFilterType('public')}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filterType === 'public'
+                                className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${filterType === 'public'
                                     ? 'bg-indigo-100 text-indigo-700'
                                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                     }`}
@@ -219,7 +219,7 @@ const SharedElements = () => {
                             </button>
                             <button
                                 onClick={() => setFilterType('private')}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filterType === 'private'
+                                className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${filterType === 'private'
                                     ? 'bg-indigo-100 text-indigo-700'
                                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                     }`}
@@ -228,7 +228,7 @@ const SharedElements = () => {
                             </button>
                             <button
                                 onClick={() => setFilterType("all")}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filterType === "all"
+                                className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${filterType === "all"
                                     ? "bg-indigo-100 text-indigo-700"
                                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                                     }`}
@@ -246,7 +246,7 @@ const SharedElements = () => {
                                     placeholder="Search shared elements..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                                 />
                             </div>
                         </div>
@@ -255,7 +255,7 @@ const SharedElements = () => {
                     {/* Tags Filter */}
                     {allTags.length > 0 && (
                         <div className="mt-4">
-                            <h3 className="text-sm font-medium text-gray-700 mb-2">Filter by tags:</h3>
+                            <h3 className="text-xs sm:text-sm font-medium text-gray-700 mb-2">Filter by tags:</h3>
                             <div className="flex flex-wrap gap-2">
                                 {allTags.map(tag => (
                                     <button
@@ -277,7 +277,7 @@ const SharedElements = () => {
                 {/* Error Message */}
                 {error && (
                     <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                        <p className="text-red-700">{error}</p>
+                        <p className="text-red-700 text-sm">{error}</p>
                     </div>
                 )}
 
@@ -285,8 +285,8 @@ const SharedElements = () => {
                 {filteredElements.length === 0 ? (
                     <div className="text-center py-12">
                         <Share2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">No shared elements found</h3>
-                        <p className="text-gray-600">
+                        <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No shared elements found</h3>
+                        <p className="text-gray-600 text-sm">
                             {filterType === 'received' && 'No elements have been shared with you yet.'}
                             {filterType === 'shared' && 'You haven\'t shared any elements yet.'}
                             {filterType === 'public' && 'No public elements available.'}
@@ -295,13 +295,13 @@ const SharedElements = () => {
                         </p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                         {filteredElements.map((element) => (
                             <div key={element._id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                                 {/* Element Preview */}
                                 <div className="p-4 border-b border-gray-200">
                                     <div className="flex items-center justify-between mb-3">
-                                        <h3 className="font-medium text-gray-900 truncate">{element.name}</h3>
+                                        <h3 className="font-medium text-gray-900 truncate text-sm sm:text-base">{element.name}</h3>
                                         <div className="flex items-center gap-1">
                                             {element.isPublic ? (
                                                 <Globe className="h-4 w-4 text-green-600" title="Public" />
@@ -312,12 +312,12 @@ const SharedElements = () => {
                                     </div>
 
                                     {element.description && (
-                                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                                        <p className="text-xs sm:text-sm text-gray-600 mb-3 line-clamp-2">
                                             {element.description}
                                         </p>
                                     )}
 
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
                                         <div className="flex items-center gap-2 text-xs text-gray-500">
                                             <User className="h-3 w-3" />
                                             <span>{element.sharedBy?.username || 'Unknown'}</span>
@@ -338,7 +338,7 @@ const SharedElements = () => {
                                 {/* Element Content Preview */}
                                 <div className="p-4">
                                     <div className="flex items-center justify-between mb-3">
-                                        <span className="text-sm font-medium text-gray-700">Elements:</span>
+                                        <span className="text-xs sm:text-sm font-medium text-gray-700">Elements:</span>
                                         <span className="text-xs text-gray-500">
                                             {element.elements?.length || 0} total
                                         </span>
@@ -377,14 +377,14 @@ const SharedElements = () => {
                                                     <RefreshCw className="h-4 w-4" />
                                                 </button>
                                             </div>
-                                            <button className="text-sm text-indigo-600 hover:text-indigo-700 font-medium" title="View details">
+                                            <button className="text-xs sm:text-sm text-indigo-600 hover:text-indigo-700 font-medium" title="View details">
                                                 View Details
                                             </button>
                                         </div>
                                     </div>
                                 ) : (
                                     <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-                                        <button className="text-sm text-indigo-600 hover:text-indigo-700 cursor-not-allowed font-medium" title="View details">
+                                        <button className="text-xs sm:text-sm text-indigo-600 hover:text-indigo-700 cursor-not-allowed font-medium" title="View details">
                                             View Details
                                         </button>
                                     </div>
@@ -398,44 +398,44 @@ const SharedElements = () => {
             {/* Edit Modal */}
             {editingElement && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                    <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-                        <div className="p-6">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Edit Shared Element</h3>
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-2 sm:mx-4">
+                        <div className="p-4 sm:p-6">
+                            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Edit Shared Element</h3>
 
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                                         Name
                                     </label>
                                     <input
                                         type="text"
                                         value={editForm.name}
                                         onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                                         Description
                                     </label>
                                     <textarea
                                         value={editForm.description}
                                         onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
                                         rows={3}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                                         Tags (comma-separated)
                                     </label>
                                     <input
                                         type="text"
                                         value={editForm.tags}
                                         onChange={(e) => setEditForm(prev => ({ ...prev, tags: e.target.value }))}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                                     />
                                 </div>
 
@@ -447,7 +447,7 @@ const SharedElements = () => {
                                         onChange={(e) => setEditForm(prev => ({ ...prev, isPublic: e.target.checked }))}
                                         className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                                     />
-                                    <label htmlFor="edit-is-public" className="text-sm text-gray-700">
+                                    <label htmlFor="edit-is-public" className="text-xs sm:text-sm text-gray-700">
                                         Make public
                                     </label>
                                 </div>
@@ -456,13 +456,13 @@ const SharedElements = () => {
                             <div className="flex justify-end gap-3 mt-6">
                                 <button
                                     onClick={() => setEditingElement(null)}
-                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                                    className="px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleSaveEdit}
-                                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-lg hover:bg-indigo-700"
+                                    className="px-4 py-2 text-xs sm:text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-lg hover:bg-indigo-700"
                                 >
                                     Save Changes
                                 </button>

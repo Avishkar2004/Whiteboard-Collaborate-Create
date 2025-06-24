@@ -95,29 +95,29 @@ const ShareModal = ({ isOpen, onClose, whiteboard }) => {
           initial={{ y: -50, opacity: 0, scale: 0.95 }}
           animate={{ y: 0, opacity: 1, scale: 1 }}
           exit={{ y: -50, opacity: 0, scale: 0.95 }}
-          className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[80vh] overflow-hidden"
+          className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] sm:max-h-[80vh] overflow-hidden mx-2"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 border-b border-gray-200 gap-2 sm:gap-0">
             <div className="flex items-center gap-3">
               <Share2 className="h-6 w-6 text-indigo-600" />
-              <h2 className="text-xl font-semibold text-gray-900">Share Whiteboard</h2>
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Share Whiteboard</h2>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors self-end sm:self-auto"
             >
               <X className="h-5 w-5 text-gray-500" />
             </button>
           </div>
 
           {/* Content */}
-          <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
+          <div className="p-4 sm:p-6 space-y-6 max-h-[60vh] sm:max-h-[60vh] overflow-y-auto">
             {/* Whiteboard Info */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="font-medium text-gray-900 mb-1">{whiteboard.name}</h3>
-              <p className="text-sm text-gray-600">
+            <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+              <h3 className="font-medium text-gray-900 mb-1 text-base sm:text-lg">{whiteboard.name}</h3>
+              <p className="text-xs sm:text-sm text-gray-600">
                 {isOwner ? 'You own this whiteboard' : 'Shared with you'}
               </p>
             </div>
@@ -126,22 +126,22 @@ const ShareModal = ({ isOpen, onClose, whiteboard }) => {
             {isOwner && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                     Share with user by email
                   </label>
-                  <form onSubmit={handleShare} className="flex gap-2">
+                  <form onSubmit={handleShare} className="flex flex-col sm:flex-row gap-2">
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="Enter email address"
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                       required
                     />
                     <button
                       type="submit"
                       disabled={shareLoading || !email.trim()}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
                     >
                       {shareLoading ? (
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -157,13 +157,13 @@ const ShareModal = ({ isOpen, onClose, whiteboard }) => {
                 {success && (
                   <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                     <CheckCircle className="h-4 w-4 text-green-600" />
-                    <p className="text-sm text-green-700">{success}</p>
+                    <p className="text-xs sm:text-sm text-green-700">{success}</p>
                   </div>
                 )}
                 {error && (
                   <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
                     <AlertCircle className="h-4 w-4 text-red-600" />
-                    <p className="text-sm text-red-700">{error}</p>
+                    <p className="text-xs sm:text-sm text-red-700">{error}</p>
                   </div>
                 )}
               </div>
@@ -173,7 +173,7 @@ const ShareModal = ({ isOpen, onClose, whiteboard }) => {
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-gray-500" />
-                <h3 className="font-medium text-gray-900">People with access</h3>
+                <h3 className="font-medium text-gray-900 text-sm sm:text-base">People with access</h3>
               </div>
 
               {loading ? (
@@ -182,17 +182,17 @@ const ShareModal = ({ isOpen, onClose, whiteboard }) => {
                 <div className="space-y-2">
                   {/* Owner */}
                   {owner && (
-                    <div className="flex items-center justify-between p-3 bg-indigo-50 rounded-lg">
+                    <div className="flex flex-col sm:flex-row items-center justify-between p-3 bg-indigo-50 rounded-lg gap-2 sm:gap-0">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center">
                           <Crown className="h-4 w-4 text-white" />
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900">{owner.username}</p>
-                          <p className="text-sm text-gray-600">{owner.email}</p>
+                          <p className="font-medium text-gray-900 text-sm">{owner.username}</p>
+                          <p className="text-xs text-gray-600">{owner.email}</p>
                         </div>
                       </div>
-                      <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full">
+                      <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full mt-2 sm:mt-0">
                         Owner
                       </span>
                     </div>
@@ -201,20 +201,20 @@ const ShareModal = ({ isOpen, onClose, whiteboard }) => {
                   {/* Collaborators */}
                   {collaborators.length > 0 ? (
                     collaborators.map((collaborator) => (
-                      <div key={collaborator._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div key={collaborator._id} className="flex flex-col sm:flex-row items-center justify-between p-3 bg-gray-50 rounded-lg gap-2 sm:gap-0">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
                             <Mail className="h-4 w-4 text-white" />
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900">{collaborator.username}</p>
-                            <p className="text-sm text-gray-600">{collaborator.email}</p>
+                            <p className="font-medium text-gray-900 text-sm">{collaborator.username}</p>
+                            <p className="text-xs text-gray-600">{collaborator.email}</p>
                           </div>
                         </div>
                         {isOwner && (
                           <button
                             onClick={() => handleRemoveCollaborator(collaborator._id)}
-                            className="p-1 rounded-full hover:bg-red-100 text-red-600 transition-colors"
+                            className="p-1 rounded-full hover:bg-red-100 text-red-600 transition-colors mt-2 sm:mt-0"
                             title="Remove collaborator"
                           >
                             <UserMinus className="h-4 w-4" />
@@ -225,7 +225,7 @@ const ShareModal = ({ isOpen, onClose, whiteboard }) => {
                   ) : (
                     <div className="text-center py-8 text-gray-500">
                       <Users className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                      <p className="text-sm">No collaborators yet</p>
+                      <p className="text-xs sm:text-sm">No collaborators yet</p>
                       {isOwner && (
                         <p className="text-xs mt-1">Share this whiteboard to add collaborators</p>
                       )}
@@ -237,10 +237,10 @@ const ShareModal = ({ isOpen, onClose, whiteboard }) => {
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+          <div className="px-4 sm:px-6 py-4 bg-gray-50 border-t border-gray-200">
             <button
               onClick={onClose}
-              className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
             >
               Close
             </button>

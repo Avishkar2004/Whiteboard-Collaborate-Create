@@ -15,6 +15,7 @@ import {
   FileWarning,
   X,
   Share2,
+  Menu,
 } from 'lucide-react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
@@ -48,6 +49,7 @@ const Dashboard = () => {
   const [boardToDelete, setBoardToDelete] = useState(null);
   const [isShareModalOpen, setShareModalOpen] = useState(false);
   const [boardToShare, setBoardToShare] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated && token) {
@@ -170,10 +172,17 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
+      {/* Mobile Topbar */}
+      <div className="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200 shadow-sm sticky top-0 z-30">
+        <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">My Boards</h1>
+        <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 rounded-md hover:bg-indigo-50 focus:outline-none">
+          <Menu className="w-6 h-6 text-indigo-600" />
+        </button>
+      </div>
       {/* Sidebar */}
-      <aside className="w-64 bg-white shadow-md flex-shrink-0">
-        <div className="p-6">
+      <aside className={`fixed md:static top-0 left-0 h-full z-40 bg-white shadow-md flex-shrink-0 w-64 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300 ease-in-out`}>
+        <div className="p-6 hidden md:block">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
             My Boards
           </h1>
@@ -182,7 +191,7 @@ const Dashboard = () => {
           {['all', 'shared', 'recent', 'starred'].map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => { setActiveTab(tab); setSidebarOpen(false); }}
               className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === tab
                 ? 'bg-indigo-50 text-indigo-600'
                 : 'text-gray-600 hover:bg-indigo-50'
@@ -198,11 +207,16 @@ const Dashboard = () => {
         </nav>
       </aside>
 
+      {/* Overlay for mobile sidebar */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 z-30 md:hidden" onClick={() => setSidebarOpen(false)}></div>
+      )}
+
       {/* Main Content */}
-      <div className="flex-1 p-8">
+      <div className="flex-1 p-4 sm:p-6 md:p-8">
         <main>
           {/* Header */}
-          <div className="flex justify-between items-center mb-8">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
             <div className="relative w-full max-w-xs">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
@@ -215,7 +229,7 @@ const Dashboard = () => {
             </div>
             <button
               onClick={() => setCreateModalOpen(true)}
-              className="flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg shadow-sm hover:bg-indigo-700 transition-colors"
+              className="flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg shadow-sm hover:bg-indigo-700 transition-colors w-full sm:w-auto"
             >
               <Plus className="h-5 w-5 mr-2" />
               New Whiteboard
@@ -235,7 +249,7 @@ const Dashboard = () => {
               <CardLoader text="Loading whiteboards..." />
             ) : filteredAndSortedWhiteboards.length > 0 ? (
               <Motion.div
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
@@ -250,7 +264,7 @@ const Dashboard = () => {
                   >
                     <div className="p-4">
                       <div className="flex justify-between items-start">
-                        <h3 className="font-semibold text-gray-800 group-hover:text-indigo-600 flex-1 mr-2">
+                        <h3 className="font-semibold text-gray-800 group-hover:text-indigo-600 flex-1 mr-2 text-base sm:text-lg">
                           {board.name}
                         </h3>
                         <div className="relative">
@@ -311,7 +325,7 @@ const Dashboard = () => {
                           </AnimatePresence>
                         </div>
                       </div>
-                      <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
+                      <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs sm:text-sm text-gray-500 gap-2 sm:gap-0">
                         {board.isPublic ? (
                           <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-100 text-green-700">
                             <Globe className="h-3 w-3" /> Public
@@ -351,7 +365,7 @@ const Dashboard = () => {
               initial={{ y: -50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -50, opacity: 0 }}
-              className="bg-white rounded-lg shadow-xl w-full max-w-md"
+              className="bg-white rounded-lg shadow-xl w-full max-w-md mx-2"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-6">
@@ -398,7 +412,7 @@ const Dashboard = () => {
               initial={{ y: -50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -50, opacity: 0 }}
-              className="bg-white rounded-lg shadow-xl w-full max-w-sm"
+              className="bg-white rounded-lg shadow-xl w-full max-w-sm mx-2"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-6 text-center">

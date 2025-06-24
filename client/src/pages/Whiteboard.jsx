@@ -219,9 +219,9 @@ const Whiteboard = () => {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col overflow-hidden">
       {/* Toolbar */}
-      <div className="bg-white shadow-lg p-4 flex items-center justify-between z-10">
+      <div className="bg-white shadow-lg p-3 sm:p-4 flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-0 items-start sm:items-center justify-between z-10 w-full">
         {/* Left side - Back button and whiteboard info */}
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
           <button
             onClick={() => navigate('/home')}
             className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
@@ -230,11 +230,11 @@ const Whiteboard = () => {
             <span>Back</span>
           </button>
 
-          <div className="border-l border-gray-300 pl-4">
-            <h1 className="text-lg font-semibold text-gray-800">
+          <div className="border-l border-gray-300 pl-4 mt-2 sm:mt-0">
+            <h1 className="text-base sm:text-lg font-semibold text-gray-800">
               {whiteboardInfo?.name || 'Loading...'}
             </h1>
-            <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500 mt-1">
               <div className="flex items-center gap-1">
                 <User className="w-3 h-3" />
                 <span>{user.username || 'Unknown'}</span>
@@ -253,7 +253,7 @@ const Whiteboard = () => {
         </div>
 
         {/* Center - Drawing tools */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap mt-3 sm:mt-0">
           <button onClick={() => setTool('brush')} className={`p-2 rounded-lg ${tool === 'brush' ? 'bg-indigo-100 text-indigo-600' : 'hover:bg-gray-100'}`}>
             <Brush className="w-5 h-5" />
           </button>
@@ -275,8 +275,8 @@ const Whiteboard = () => {
         </div>
 
         {/* Right side - Actions and user info */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 mt-3 sm:mt-0 w-full sm:w-auto">
+          <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
             <span>Connected as {user?.username}</span>
           </div>
@@ -285,15 +285,15 @@ const Whiteboard = () => {
             {isOwner && (
               <button
                 onClick={() => setShowShareModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
               >
                 <Share2 className="w-4 h-4" />
-                <span>Share Elements</span>
+                <span className="hidden xs:inline">Share Elements</span>
               </button>
             )}
-            <button onClick={saveWhiteboard} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+            <button onClick={saveWhiteboard} className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
               <Save className="w-4 h-4" />
-              <span>Save</span>
+              <span className="hidden xs:inline">Save</span>
             </button>
             <button onClick={clearCanvas} className="p-2 rounded-lg hover:bg-red-100 text-red-500 transition-colors">
               <Trash2 className="w-5 h-5" />
@@ -303,14 +303,14 @@ const Whiteboard = () => {
       </div>
 
       {/* Canvas */}
-      <div className="flex-grow w-full h-full">
+      <div className="flex-grow w-full h-full overflow-auto">
         <canvas
           ref={canvasRef}
           onMouseDown={startDrawing}
           onMouseMove={draw}
           onMouseUp={stopDrawing}
           onMouseLeave={stopDrawing}
-          className="cursor-crosshair"
+          className="cursor-crosshair w-full h-[60vh] sm:h-[70vh] md:h-[80vh] block bg-white rounded-b-xl shadow"
         />
       </div>
 
