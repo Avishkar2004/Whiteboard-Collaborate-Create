@@ -97,7 +97,8 @@ const Whiteboard = () => {
         const response = await api.get(`${API_ENDPOINTS.whiteboard.getWhiteboard}/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const { elements, ...whiteboardData } = response.data;
+        const { content = {}, ...whiteboardData } = response.data;
+        const elements = content.elements || [];
         setWhiteboardInfo(whiteboardData);
 
         if (elements && elements.length > 0) {

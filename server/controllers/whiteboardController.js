@@ -59,7 +59,11 @@ export const getWhiteboard = async (req, res) => {
       return res.status(403).json({ message: "Access denied" });
     }
 
-    res.json(whiteboard);
+    const whiteboardObj = whiteboard.toObject();
+    res.json({
+      ...whiteboardObj,
+      elements: whiteboardObj.content?.elements || [],
+    });
   } catch (error) {
     res
       .status(500)
