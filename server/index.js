@@ -21,6 +21,7 @@ const allowedOrigins = [
   "http://localhost:5173", // Development
   "http://localhost:3000", // Alternative dev port
   "https://whiteboard-collaborate-create.vercel.app", // Production
+  "https://whiteboard-coll-git-7abfdd-avishkarkakde2004-gmailcoms-projects.vercel.app",
   process.env.CLIENT_URL, // Environment variable for additional origins
 ].filter(Boolean); // Remove any undefined values
 
@@ -28,7 +29,7 @@ const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
+
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -37,7 +38,12 @@ const corsOptions = {
     }
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Access-Control-Allow-Origin"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "Access-Control-Allow-Origin",
+  ],
   credentials: true,
   optionsSuccessStatus: 200, // Some legacy browsers choke on 204
 };
@@ -46,7 +52,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Handle preflight requests explicitly
-app.options('*', cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 // Other middleware
 app.use(morgan("dev"));
@@ -59,36 +65,10 @@ app.get("/", (req, res) => {
 });
 
 app.get("/health", (req, res) => {
-  res.json({ 
-    status: "OK", 
+  res.json({
+    status: "OK",
     timestamp: new Date().toISOString(),
-    message: "Server is healthy"
-  });
-});
-
-// Test endpoint for debugging
-app.get("/api/test", (req, res) => {
-  res.json({ message: "API is working!", timestamp: new Date().toISOString() });
-});
-
-// CORS test endpoint
-app.get("/api/cors-test", (req, res) => {
-  res.json({ 
-    message: "CORS is working!", 
-    timestamp: new Date().toISOString(),
-    origin: req.headers.origin,
-    method: req.method
-  });
-});
-
-// POST test endpoint for CORS
-app.post("/api/cors-test", (req, res) => {
-  res.json({ 
-    message: "POST CORS is working!", 
-    timestamp: new Date().toISOString(),
-    body: req.body,
-    origin: req.headers.origin,
-    method: req.method
+    message: "Server is healthy",
   });
 });
 
@@ -98,9 +78,9 @@ app.use("/api/users", (req, res, next) => {
   if (global.dbConnected) {
     return userRoutes(req, res, next);
   } else {
-    return res.status(503).json({ 
+    return res.status(503).json({
       message: "Database connection is not available",
-      error: "Service temporarily unavailable"
+      error: "Service temporarily unavailable",
     });
   }
 });
@@ -110,15 +90,18 @@ app.use("/api/whiteboards", (req, res, next) => {
   if (global.dbConnected) {
     return whiteboardRoutes(req, res, next);
   } else {
-    return res.status(503).json({ 
+    return res.status(503).json({
       message: "Database connection is not available",
-      error: "Service temporarily unavailable"
+      error: "Service temporarily unavailable",
     });
   }
 });
 
 // Socket.IO server (only for non-serverless environments)
-if (process.env.NODE_ENV !== "production" || process.env.ENABLE_SOCKET === "true") {
+if (
+  process.env.NODE_ENV !== "production" ||
+  process.env.ENABLE_SOCKET === "true"
+) {
   const io = new Server(server, {
     cors: {
       origin: allowedOrigins,
@@ -151,7 +134,10 @@ app.use((err, req, res, next) => {
   console.error("Error:", err.stack);
   res.status(500).json({
     message: "Something went wrong!",
-    error: process.env.NODE_ENV === "development" ? err.message : "Internal server error",
+    error:
+      process.env.NODE_ENV === "development"
+        ? err.message
+        : "Internal server error",
   });
 });
 
@@ -196,4 +182,3 @@ setTimeout(async () => {
 }, 100); // Small delay to ensure server starts first
 
 export default app; // Export app instead of server for serverless
-
