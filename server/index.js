@@ -16,15 +16,32 @@ import whiteboardRoutes from "./routes/whiteboardRoutes.js";
 const app = express();
 const server = http.createServer(app);
 
+// CORS configuration
+const allowedOrigins = [
+  "http://localhost:5173", // Development
+  "http://localhost:3000", // Alternative dev port
+  "https://whiteboard-collaborate-create.vercel.app", // Production
+  process.env.CLIENT_URL, // Environment variable for additional origins
+].filter(Boolean); // Remove any undefined values
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
+
 // Middleware
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  })
-);
+app.use(cors(corsOptions));
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -32,23 +49,23 @@ app.use(express.urlencoded({ extended: true }));
 // Connect to Redis
 app.use(cacheMiddleware(redisClient, 60));
 
-// Routes
-
-app.get("/", (req, res) => {
-  res.send("Server is running");
-})
-
-app.use("/api/users", userRoutes);
-app.use("/api/whiteboards", whiteboardRoutes);
-
 // Socket.IO server
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST"],
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   },
 });
+
+// Routes
+app.get("/", (req, res) => {
+  res.send("Server is running  🚀🚀🚀");
+});
+
+app.use("/api/users", userRoutes);
+app.use("/api/whiteboards", whiteboardRoutes);
 
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
