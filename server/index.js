@@ -81,3 +81,5 @@ Promise.all([connectRedis, connectDB])
     console.error("Failed to connect to DB or Redis:", err);
     process.exit(1);
   });
+
+export default server;

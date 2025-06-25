@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useAuthStore } from "../../hooks/useAuth";
 
-const API_URL = "http://localhost:5000";
+export const API_URL = "http://localhost:5000";
 
 // Create axios instance with default config
 const api = axios.create({

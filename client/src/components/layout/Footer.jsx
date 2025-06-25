@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
 import { Github, Twitter } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 
 const Footer = () => (
-  <motion.footer
+  <Motion.footer
     initial={{ opacity: 0, y: 40 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.7, ease: 'easeOut' }}
@@ -32,7 +32,7 @@ const Footer = () => (
         </Link>
       </div>
     </div>
-  </motion.footer>
+  </Motion.footer>
 );
 
 export default Footer; 

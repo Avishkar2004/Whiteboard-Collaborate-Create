@@ -1,5 +1,5 @@
 import { Users, Clock, Star, Pencil } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 
 const features = [
   {
@@ -39,24 +39,24 @@ const item = {
 };
 
 const Features = () => (
-  <motion.section
+  <Motion.section
     className="max-w-5xl mx-auto py-16 px-4 text-center"
     variants={container}
     initial="hidden"
     whileInView="show"
     viewport={{ once: true, amount: 0.2 }}
   >
-    <motion.h2
+    <Motion.h2
       className="text-3xl sm:text-4xl font-extrabold mb-6 bg-gradient-to-r from-indigo-600 to-purple-700 bg-clip-text text-transparent"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.7, delay: 0.2 }}
     >
       Features
-    </motion.h2>
+    </Motion.h2>
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mt-8">
       {features.map((f, i) => (
-        <motion.div
+          <Motion.div
           key={i}
           className="bg-white rounded-xl shadow-md p-6 flex flex-col items-center hover:shadow-xl transition-shadow"
           variants={item}
@@ -64,10 +64,10 @@ const Features = () => (
           {f.icon}
           <h3 className="mt-4 text-xl font-semibold text-gray-800">{f.title}</h3>
           <p className="mt-2 text-gray-500">{f.desc}</p>
-        </motion.div>
+        </Motion.div>
       ))}
     </div>
-  </motion.section>
+  </Motion.section>
 );
 
 export default Features; 

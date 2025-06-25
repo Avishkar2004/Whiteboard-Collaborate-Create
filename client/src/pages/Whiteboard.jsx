@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { io } from 'socket.io-client';
 import { useAuth } from '../hooks/useAuth';
-import api, { API_ENDPOINTS } from '../components/config/api';
+import api, { API_URL, API_ENDPOINTS } from '../components/config/api';
 import ShareElementsModal from '../components/ShareElementsModal';
 
 const Whiteboard = () => {
@@ -79,7 +79,7 @@ const Whiteboard = () => {
     context.lineWidth = lineWidth;
     contextRef.current = context;
 
-    const newSocket = io('http://localhost:5000', { auth: { token } });
+    const newSocket = io(API_URL, { auth: { token } });
     setSocket(newSocket);
 
     return () => newSocket.disconnect();
