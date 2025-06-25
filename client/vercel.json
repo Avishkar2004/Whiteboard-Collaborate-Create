@@ -9,14 +9,14 @@
             }
         }
     ],
-    "routes": [
+    "rewrites": [
         {
-            "src": "/api/(.*)",
-            "dest": "https://whiteboard-collaborate-server.vercel.app/api/$1"
+            "source": "/api/(.*)",
+            "destination": "https://whiteboard-collaborate-server.vercel.app/api/$1"
         },
         {
-            "src": "/(.*)",
-            "dest": "/index.html"
+            "source": "/(.*)",
+            "destination": "/index.html"
         }
     ],
     "headers": [
