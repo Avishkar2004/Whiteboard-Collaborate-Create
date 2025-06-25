@@ -55,7 +55,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Basic routes that don't need database
 app.get("/", (req, res) => {
-  res.send("Server is running  🚀🚀🚀");
+  res.send("Server is running  🚀🚀");
 });
 
 app.get("/health", (req, res) => {
