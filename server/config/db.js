@@ -20,7 +20,7 @@ const mongoOptions = {
 // MongoDB connection
 const connectDB = async () => {
   try {
-    const mongoUri = process.env.MONGODB_URI || "mongodb://localhost:27017/whiteboard-app";
+    const mongoUri = process.env.MONGODB_URI || "mongodb+srv://avishkarkakde2004:FCWErtT40GzKdtNa@whiteboard-collaborate.vrfbti1.mongodb.net/";
     console.log("Attempting to connect to MongoDB...");
     console.log("MongoDB URI configured:", !!process.env.MONGODB_URI);
     
