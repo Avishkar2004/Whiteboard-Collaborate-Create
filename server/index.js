@@ -53,7 +53,7 @@ app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Basic routes that don't need database
+// Basic routes that don't need database - START IMMEDIATELY
 app.get("/", (req, res) => {
   res.send("Server is running  🚀🚀");
 });
@@ -92,84 +92,59 @@ app.post("/api/cors-test", (req, res) => {
   });
 });
 
-// Socket.IO server
-const io = new Server(server, {
-  cors: {
-    origin: allowedOrigins,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  },
-});
-
-// Socket.IO events
-io.on("connection", (socket) => {
-  console.log("A user connected:", socket.id);
-
-  socket.on("joinWhiteboard", (boardId) => {
-    socket.join(boardId);
-    console.log(`User ${socket.id} joined whiteboard ${boardId}`);
-  });
-
-  socket.on("whiteboardUpdate", ({ boardId, data }) => {
-    socket.to(boardId).emit("whiteboardUpdate", data);
-  });
-
-  socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
-  });
-});
-
-// Start the server immediately
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
-  console.log(`CORS origins: ${allowedOrigins.join(", ")}`);
-});
-
-// Try to connect to databases in the background
-let dbConnected = false;
-let redisConnected = false;
-
-// Connect to Redis
-connectRedis()
-  .then(() => {
-    console.log("✅ Redis connected");
-    redisConnected = true;
-    // Apply Redis cache middleware after connection
-    app.use(cacheMiddleware(redisClient, 60));
-  })
-  .catch((err) => {
-    console.log("❌ Redis connection failed:", err.message);
-    // Continue without Redis
-  });
-
-// Connect to MongoDB
-connectDB
-  .then(() => {
-    console.log("✅ MongoDB connected");
-    dbConnected = true;
-    // Apply routes that need database
-    app.use("/api/users", userRoutes);
-    app.use("/api/whiteboards", whiteboardRoutes);
-  })
-  .catch((err) => {
-    console.log("❌ MongoDB connection failed:", err.message);
-    // Add error handling for database routes
-    app.use("/api/users", (req, res) => {
-      res.status(503).json({ 
-        message: "Database connection is not available",
-        error: "Service temporarily unavailable"
-      });
+// Database-dependent routes with fallback
+app.use("/api/users", (req, res, next) => {
+  // Check if database is connected
+  if (global.dbConnected) {
+    return userRoutes(req, res, next);
+  } else {
+    return res.status(503).json({ 
+      message: "Database connection is not available",
+      error: "Service temporarily unavailable"
     });
-    app.use("/api/whiteboards", (req, res) => {
-      res.status(503).json({ 
-        message: "Database connection is not available",
-        error: "Service temporarily unavailable "
-      });
+  }
+});
+
+app.use("/api/whiteboards", (req, res, next) => {
+  // Check if database is connected
+  if (global.dbConnected) {
+    return whiteboardRoutes(req, res, next);
+  } else {
+    return res.status(503).json({ 
+      message: "Database connection is not available",
+      error: "Service temporarily unavailable"
+    });
+  }
+});
+
+// Socket.IO server (only for non-serverless environments)
+if (process.env.NODE_ENV !== "production" || process.env.ENABLE_SOCKET === "true") {
+  const io = new Server(server, {
+    cors: {
+      origin: allowedOrigins,
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+      credentials: true,
+    },
+  });
+
+  io.on("connection", (socket) => {
+    console.log("A user connected:", socket.id);
+
+    socket.on("joinWhiteboard", (boardId) => {
+      socket.join(boardId);
+      console.log(`User ${socket.id} joined whiteboard ${boardId}`);
+    });
+
+    socket.on("whiteboardUpdate", ({ boardId, data }) => {
+      socket.to(boardId).emit("whiteboardUpdate", data);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("User disconnected:", socket.id);
     });
   });
+}
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -185,5 +160,40 @@ app.use("*", (req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-export default server;
+// Start the server immediately (for serverless, this is handled by Vercel)
+if (process.env.NODE_ENV !== "production") {
+  const PORT = process.env.PORT || 5000;
+  server.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+    console.log(`CORS origins: ${allowedOrigins.join(", ")}`);
+  });
+}
+
+// Connect to databases in the background (non-blocking)
+setTimeout(async () => {
+  try {
+    // Try to connect to MongoDB
+    await connectDB;
+    console.log("✅ MongoDB connected");
+    global.dbConnected = true;
+  } catch (err) {
+    console.log("❌ MongoDB connection failed:", err.message);
+    global.dbConnected = false;
+  }
+
+  try {
+    // Try to connect to Redis
+    await connectRedis();
+    console.log("✅ Redis connected");
+    global.redisConnected = true;
+    // Apply Redis cache middleware after connection
+    app.use(cacheMiddleware(redisClient, 60));
+  } catch (err) {
+    console.log("❌ Redis connection failed:", err.message);
+    global.redisConnected = false;
+  }
+}, 100); // Small delay to ensure server starts first
+
+export default app; // Export app instead of server for serverless
 
