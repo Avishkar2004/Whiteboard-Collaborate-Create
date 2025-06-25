@@ -37,9 +37,10 @@ const corsOptions = {
     }
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   credentials: true,
   optionsSuccessStatus: 200, // Some legacy browsers choke on 204
+  preflightContinue: false,
 };
 
 // Middleware
@@ -64,6 +65,11 @@ const io = new Server(server, {
 // Routes
 app.get("/", (req, res) => {
   res.send("Server is running  🚀🚀🚀");
+});
+
+// Test endpoint for debugging
+app.get("/api/test", (req, res) => {
+  res.json({ message: "API is working!", timestamp: new Date().toISOString() });
 });
 
 app.use("/api/users", userRoutes);
@@ -94,6 +100,9 @@ app.use((err, req, res, next) => {
     error: process.env.NODE_ENV === "development" ? err.message : undefined,
   });
 });
+
+// Handle preflight requests explicitly
+app.options('*', cors(corsOptions));
 
 Promise.all([connectRedis(), connectDB])
   .then(([redis, db]) => {

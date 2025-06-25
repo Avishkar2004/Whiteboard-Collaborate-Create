@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import axios from "axios";
+import api from "../components/config/api";
 import { API_ENDPOINTS } from "../components/config/api";
 
 const initialState = {
@@ -35,7 +35,7 @@ export const useAuth = () => {
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post(API_ENDPOINTS.auth.login, {
+      const response = await api.post(API_ENDPOINTS.auth.login, {
         email,
         password,
       });
@@ -52,7 +52,7 @@ export const useAuth = () => {
 
   const register = async (username, email, password) => {
     try {
-      const response = await axios.post(API_ENDPOINTS.auth.register, {
+      const response = await api.post(API_ENDPOINTS.auth.register, {
         username,
         email,
         password,
@@ -71,7 +71,7 @@ export const useAuth = () => {
   const handleLogout = async () => {
     try {
       if (token) {
-        await axios.post(API_ENDPOINTS.auth.logout, {
+        await api.post(API_ENDPOINTS.auth.logout, {}, {
           headers: { Authorization: `Bearer ${token}` },
         });
       }
