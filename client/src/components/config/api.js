@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useAuthStore } from "../../hooks/useAuth";
 
-export const API_URL = "https://whiteboard-collaborate-server.vercel.app/";
+export const API_URL = "https://whiteboard-collaborate-server.vercel.app";
 
 // Create axios instance with default config
 const api = axios.create({
