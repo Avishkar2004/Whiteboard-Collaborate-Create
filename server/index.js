@@ -95,15 +95,28 @@ app.use((err, req, res, next) => {
   });
 });
 
-Promise.all([connectRedis, connectDB])
-  .then(() => {
+Promise.all([connectRedis(), connectDB])
+  .then(([redis, db]) => {
     server.listen(process.env.PORT, () => {
       console.log(`Server running on port ${process.env.PORT}`);
     });
   })
   .catch((err) => {
     console.error("Failed to connect to DB or Redis:", err);
-    process.exit(1);
+    // In production (Vercel), don't exit if Redis fails
+    if (process.env.NODE_ENV === "production") {
+      console.log("Starting server without Redis...");
+      connectDB.then(() => {
+        server.listen(process.env.PORT, () => {
+          console.log(`Server running on port ${process.env.PORT} (without Redis)`);
+        });
+      }).catch((dbErr) => {
+        console.error("Database connection also failed:", dbErr);
+        process.exit(1);
+      });
+    } else {
+      process.exit(1);
+    }
   });
 
 export default server;
