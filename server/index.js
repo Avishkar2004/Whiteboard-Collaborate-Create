@@ -79,22 +79,22 @@ app.get("/api/test", (req, res) => {
 
 // CORS test endpoint
 app.get("/api/cors-test", (req, res) => {
-  res.json({ 
-    message: "CORS is working!", 
+  res.json({
+    message: "CORS is working!",
     timestamp: new Date().toISOString(),
     origin: req.headers.origin,
-    method: req.method
+    method: req.method,
   });
 });
 
 // POST test endpoint for CORS
 app.post("/api/cors-test", (req, res) => {
-  res.json({ 
-    message: "POST CORS is working!", 
+  res.json({
+    message: "POST CORS is working!",
     timestamp: new Date().toISOString(),
     body: req.body,
     origin: req.headers.origin,
-    method: req.method
+    method: req.method,
   });
 });
 
@@ -105,7 +105,7 @@ app.get("/api/db-status", (req, res) => {
     timestamp: new Date().toISOString(),
     database: global.dbConnected ? "connected" : "disconnected",
     redis: global.redisConnected ? "connected" : "disconnected",
-    environment: process.env.NODE_ENV || "development"
+    environment: process.env.NODE_ENV || "development",
   });
 });
 
