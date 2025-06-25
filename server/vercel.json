@@ -1,14 +1,23 @@
 {
   "version": 2,
-  "functions": {
-    "api/index.js": {
-      "maxDuration": 30
+  "builds": [
+    {
+      "src": "index.js",
+      "use": "@vercel/node"
     }
-  },
+  ],
   "rewrites": [
     {
+      "source": "/health",
+      "destination": "/index.js"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/index.js"
+    },
+    {
       "source": "/(.*)",
-      "destination": "/api/index.js"
+      "destination": "/index.js"
     }
   ],
   "headers": [
