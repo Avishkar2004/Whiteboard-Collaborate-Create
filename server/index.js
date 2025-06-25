@@ -166,7 +166,7 @@ connectDB
     app.use("/api/whiteboards", (req, res) => {
       res.status(503).json({ 
         message: "Database connection is not available",
-        error: "Service temporarily unavailable"
+        error: "Service temporarily unavailable "
       });
     });
   });
