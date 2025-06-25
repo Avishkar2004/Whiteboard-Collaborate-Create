@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import api from '../components/config/api';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -13,24 +12,12 @@ const Register = () => {
     confirmPassword: '',
   });
   const [error, setError] = useState('');
-  const [testResult, setTestResult] = useState('');
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
-  };
-
-  const testConnection = async () => {
-    try {
-      setTestResult('Testing connection...');
-      const response = await api.get('/api/test');
-      setTestResult(`Connection successful: ${response.data.message}`);
-    } catch (error) {
-      setTestResult(`Connection failed: ${error.message}`);
-      console.error('Test connection error:', error);
-    }
   };
 
   const handleSubmit = async (e) => {
@@ -82,32 +69,7 @@ const Register = () => {
             </div>
           )}
 
-          {testResult && (
-            <div className="mb-4 bg-blue-50 border-l-4 border-blue-400 p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm text-blue-700">{testResult}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
           <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <button
-                type="button"
-                onClick={testConnection}
-                className="w-full mb-4 flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200"
-              >
-                Test Server Connection
-              </button>
-            </div>
-
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-700">
                 Username
