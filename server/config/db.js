@@ -20,7 +20,7 @@ const mongoOptions = {
 // MongoDB connection
 const connectDB = mongoose
   .connect(
-    process.env.MONGODB_URI || "mongodb://localhost:27017/whiteboard-app",
+    process.env.MONGODB_URI,
     mongoOptions
   )
   .then(() => {
