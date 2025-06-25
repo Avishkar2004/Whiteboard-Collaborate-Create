@@ -11,19 +11,19 @@ const mongoOptions = {
   w: "majority",
   maxPoolSize: 10, // Maintain up to 10 socket connections
   serverApi: {
-    version: '1',
+    version: "1",
     strict: true,
     deprecationErrors: true,
-  }
+  },
 };
 
 // MongoDB connection
 const connectDB = async () => {
   try {
-    const mongoUri = process.env.MONGODB_URI || "mongodb+srv://avishkarkakde2004:FCWErtT40GzKdtNa@whiteboard-collaborate.vrfbti1.mongodb.net/";
+    const mongoUri = process.env.MONGODB_URI;
     console.log("Attempting to connect to MongoDB...");
     console.log("MongoDB URI configured:", !!process.env.MONGODB_URI);
-    
+
     const connection = await mongoose.connect(mongoUri, mongoOptions);
     console.log("✅ Connected to MongoDB");
     return connection;
