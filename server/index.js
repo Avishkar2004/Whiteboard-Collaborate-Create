@@ -33,6 +33,11 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cacheMiddleware(redisClient, 60));
 
 // Routes
+
+app.get("/", (req, res) => {
+  res.send("Server is running");
+})
+
 app.use("/api/users", userRoutes);
 app.use("/api/whiteboards", whiteboardRoutes);
 
