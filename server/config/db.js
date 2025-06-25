@@ -29,7 +29,8 @@ const connectDB = mongoose
   })
   .catch((err) => {
     console.error("MongoDB connection error:", err);
-    throw err;
+    // Don't throw error, just return a rejected promise
+    return Promise.reject(err);
   });
 
 export default connectDB;

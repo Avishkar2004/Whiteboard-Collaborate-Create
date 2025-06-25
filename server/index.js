@@ -16,7 +16,7 @@ import whiteboardRoutes from "./routes/whiteboardRoutes.js";
 const app = express();
 const server = http.createServer(app);
 
-// CORS configuration
+// CORS configuration - MUST be applied before any routes
 const allowedOrigins = [
   "http://localhost:5173", // Development
   "http://localhost:3000", // Alternative dev port
@@ -37,20 +37,60 @@ const corsOptions = {
     }
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Access-Control-Allow-Origin"],
   credentials: true,
   optionsSuccessStatus: 200, // Some legacy browsers choke on 204
-  preflightContinue: false,
 };
 
-// Middleware
+// Apply CORS middleware FIRST
 app.use(cors(corsOptions));
+
+// Handle preflight requests explicitly
+app.options('*', cors(corsOptions));
+
+// Other middleware
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Connect to Redis
-app.use(cacheMiddleware(redisClient, 60));
+// Basic routes that don't need database
+app.get("/", (req, res) => {
+  res.send("Server is running  🚀🚀🚀");
+});
+
+app.get("/health", (req, res) => {
+  res.json({ 
+    status: "OK", 
+    timestamp: new Date().toISOString(),
+    message: "Server is healthy"
+  });
+});
+
+// Test endpoint for debugging
+app.get("/api/test", (req, res) => {
+  res.json({ message: "API is working!", timestamp: new Date().toISOString() });
+});
+
+// CORS test endpoint
+app.get("/api/cors-test", (req, res) => {
+  res.json({ 
+    message: "CORS is working!", 
+    timestamp: new Date().toISOString(),
+    origin: req.headers.origin,
+    method: req.method
+  });
+});
+
+// POST test endpoint for CORS
+app.post("/api/cors-test", (req, res) => {
+  res.json({ 
+    message: "POST CORS is working!", 
+    timestamp: new Date().toISOString(),
+    body: req.body,
+    origin: req.headers.origin,
+    method: req.method
+  });
+});
 
 // Socket.IO server
 const io = new Server(server, {
@@ -62,19 +102,7 @@ const io = new Server(server, {
   },
 });
 
-// Routes
-app.get("/", (req, res) => {
-  res.send("Server is running  🚀🚀🚀");
-});
-
-// Test endpoint for debugging
-app.get("/api/test", (req, res) => {
-  res.json({ message: "API is working!", timestamp: new Date().toISOString() });
-});
-
-app.use("/api/users", userRoutes);
-app.use("/api/whiteboards", whiteboardRoutes);
-
+// Socket.IO events
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
@@ -92,40 +120,70 @@ io.on("connection", (socket) => {
   });
 });
 
+// Start the server immediately
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+  console.log(`CORS origins: ${allowedOrigins.join(", ")}`);
+});
+
+// Try to connect to databases in the background
+let dbConnected = false;
+let redisConnected = false;
+
+// Connect to Redis
+connectRedis()
+  .then(() => {
+    console.log("✅ Redis connected");
+    redisConnected = true;
+    // Apply Redis cache middleware after connection
+    app.use(cacheMiddleware(redisClient, 60));
+  })
+  .catch((err) => {
+    console.log("❌ Redis connection failed:", err.message);
+    // Continue without Redis
+  });
+
+// Connect to MongoDB
+connectDB
+  .then(() => {
+    console.log("✅ MongoDB connected");
+    dbConnected = true;
+    // Apply routes that need database
+    app.use("/api/users", userRoutes);
+    app.use("/api/whiteboards", whiteboardRoutes);
+  })
+  .catch((err) => {
+    console.log("❌ MongoDB connection failed:", err.message);
+    // Add error handling for database routes
+    app.use("/api/users", (req, res) => {
+      res.status(503).json({ 
+        message: "Database connection is not available",
+        error: "Service temporarily unavailable"
+      });
+    });
+    app.use("/api/whiteboards", (req, res) => {
+      res.status(503).json({ 
+        message: "Database connection is not available",
+        error: "Service temporarily unavailable"
+      });
+    });
+  });
+
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error("Error:", err.stack);
   res.status(500).json({
     message: "Something went wrong!",
-    error: process.env.NODE_ENV === "development" ? err.message : undefined,
+    error: process.env.NODE_ENV === "development" ? err.message : "Internal server error",
   });
 });
 
-// Handle preflight requests explicitly
-app.options('*', cors(corsOptions));
-
-Promise.all([connectRedis(), connectDB])
-  .then(([redis, db]) => {
-    server.listen(process.env.PORT, () => {
-      console.log(`Server running on port ${process.env.PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error("Failed to connect to DB or Redis:", err);
-    // In production (Vercel), don't exit if Redis fails
-    if (process.env.NODE_ENV === "production") {
-      console.log("Starting server without Redis...");
-      connectDB.then(() => {
-        server.listen(process.env.PORT, () => {
-          console.log(`Server running on port ${process.env.PORT} (without Redis)`);
-        });
-      }).catch((dbErr) => {
-        console.error("Database connection also failed:", dbErr);
-        process.exit(1);
-      });
-    } else {
-      process.exit(1);
-    }
-  });
+// 404 handler
+app.use("*", (req, res) => {
+  res.status(404).json({ message: "Route not found" });
+});
 
 export default server;
+

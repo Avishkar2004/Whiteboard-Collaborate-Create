@@ -31,17 +31,20 @@ redisClient.on("end", () => {
 
 const connectRedis = async () => {
   try {
+    // Check if Redis environment variables are set
+    if (!process.env.REDIS_HOST || !process.env.REDIS_PASSWORD) {
+      console.log("Redis environment variables not set, skipping Redis connection");
+      return null;
+    }
+
     if (!redisClient.isOpen) {
       await redisClient.connect();
     }
     return redisClient;
   } catch (err) {
     console.error("Redis connection error:", err);
-    // Don't exit process in serverless environment
-    if (process.env.NODE_ENV !== "production") {
-      process.exit(1);
-    }
-    throw err;
+    // Don't throw error, just return null
+    return null;
   }
 };
 
