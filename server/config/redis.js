@@ -2,10 +2,13 @@ import { createClient } from "redis";
 import "dotenv/config";
 
 const redisClient = createClient({
-  url: process.env.REDIS_URL || "redis://localhost:6379",
+  username: "default",
+  password: process.env.REDIS_PASSWORD,
   socket: {
-    connectTimeout: 10000,
-    lazyConnect: true,
+    host: process.env.REDIS_HOST,
+    port: 13025,
+    connectTimeout: 5000, // 5 seconds timeout
+    lazyConnect: true, // Don't connect immediately
   },
 });
 
