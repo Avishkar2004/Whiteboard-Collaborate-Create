@@ -71,9 +71,13 @@ export const useAuth = () => {
   const handleLogout = async () => {
     try {
       if (token) {
-        await api.post(API_ENDPOINTS.auth.logout, {}, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await api.post(
+          API_ENDPOINTS.auth.logout,
+          {},
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
       }
     } catch (error) {
       console.error("Logout error:", error);
