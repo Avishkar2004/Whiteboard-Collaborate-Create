@@ -72,6 +72,43 @@ app.get("/health", (req, res) => {
   });
 });
 
+// Test endpoint for debugging
+app.get("/api/test", (req, res) => {
+  res.json({ message: "API is working!", timestamp: new Date().toISOString() });
+});
+
+// CORS test endpoint
+app.get("/api/cors-test", (req, res) => {
+  res.json({ 
+    message: "CORS is working!", 
+    timestamp: new Date().toISOString(),
+    origin: req.headers.origin,
+    method: req.method
+  });
+});
+
+// POST test endpoint for CORS
+app.post("/api/cors-test", (req, res) => {
+  res.json({ 
+    message: "POST CORS is working!", 
+    timestamp: new Date().toISOString(),
+    body: req.body,
+    origin: req.headers.origin,
+    method: req.method
+  });
+});
+
+// Database status endpoint
+app.get("/api/db-status", (req, res) => {
+  res.json({
+    status: "OK",
+    timestamp: new Date().toISOString(),
+    database: global.dbConnected ? "connected" : "disconnected",
+    redis: global.redisConnected ? "connected" : "disconnected",
+    environment: process.env.NODE_ENV || "development"
+  });
+});
+
 // Database-dependent routes with fallback
 app.use("/api/users", (req, res, next) => {
   // Check if database is connected
@@ -157,10 +194,10 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 // Connect to databases in the background (non-blocking)
-setTimeout(async () => {
+const initializeDatabases = async () => {
   try {
     // Try to connect to MongoDB
-    await connectDB;
+    await connectDB();
     console.log("✅ MongoDB connected");
     global.dbConnected = true;
   } catch (err) {
@@ -179,6 +216,17 @@ setTimeout(async () => {
     console.log("❌ Redis connection failed:", err.message);
     global.redisConnected = false;
   }
-}, 100); // Small delay to ensure server starts first
+};
+
+// Initialize databases immediately
+initializeDatabases();
+
+// Also try to reconnect every 30 seconds if not connected
+setInterval(() => {
+  if (!global.dbConnected || !global.redisConnected) {
+    console.log("Attempting to reconnect to databases...");
+    initializeDatabases();
+  }
+}, 30000);
 
 export default app; // Export app instead of server for serverless

@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 const mongoOptions = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+  serverSelectionTimeoutMS: 10000, // Increased timeout to 10s
   socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
   family: 4, // Use IPv4, skip trying IPv6
   retryWrites: true,
@@ -18,19 +18,19 @@ const mongoOptions = {
 };
 
 // MongoDB connection
-const connectDB = mongoose
-  .connect(
-    process.env.MONGODB_URI,
-    mongoOptions
-  )
-  .then(() => {
+const connectDB = async () => {
+  try {
+    const mongoUri = process.env.MONGODB_URI || "mongodb://localhost:27017/whiteboard-app";
+    console.log("Attempting to connect to MongoDB...");
+    console.log("MongoDB URI configured:", !!process.env.MONGODB_URI);
+    
+    const connection = await mongoose.connect(mongoUri, mongoOptions);
     console.log("✅ Connected to MongoDB");
-    return mongoose.connection;
-  })
-  .catch((err) => {
+    return connection;
+  } catch (err) {
     console.error("MongoDB connection error:", err);
-    // Don't throw error, just return a rejected promise
-    return Promise.reject(err);
-  });
+    throw err;
+  }
+};
 
 export default connectDB;
