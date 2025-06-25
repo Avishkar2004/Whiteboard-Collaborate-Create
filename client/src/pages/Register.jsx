@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import api from '../components/config/api';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -12,6 +13,7 @@ const Register = () => {
     confirmPassword: '',
   });
   const [error, setError] = useState('');
+  const [testResult, setTestResult] = useState('');
 
   const handleChange = (e) => {
     setFormData({
@@ -41,6 +43,33 @@ const Register = () => {
     }
   };
 
+  const testConnection = async () => {
+    try {
+      setTestResult('Testing connection...');
+      
+      // Test basic server connection
+      const healthResponse = await api.get('/health');
+      console.log('Health check response:', healthResponse.data);
+      
+      // Test API endpoint
+      const apiResponse = await api.get('/api/test');
+      console.log('API test response:', apiResponse.data);
+      
+      // Test CORS GET
+      const corsGetResponse = await api.get('/api/cors-test');
+      console.log('CORS GET response:', corsGetResponse.data);
+      
+      // Test CORS POST
+      const corsPostResponse = await api.post('/api/cors-test', { test: 'data' });
+      console.log('CORS POST response:', corsPostResponse.data);
+      
+      setTestResult(`Connection successful! Health: ${healthResponse.data.status}, API: ${apiResponse.data.message}, CORS: Working`);
+    } catch (error) {
+      console.error('Test connection error:', error);
+      setTestResult(`Connection failed: ${error.message} (Status: ${error.response?.status})`);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -64,6 +93,21 @@ const Register = () => {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-red-700">{error}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {testResult && (
+            <div className="mb-4 bg-blue-50 border-l-4 border-blue-400 p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-blue-700">{testResult}</p>
                 </div>
               </div>
             </div>
@@ -140,6 +184,16 @@ const Register = () => {
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                 />
               </div>
+            </div>
+
+            <div>
+              <button
+                type="button"
+                onClick={testConnection}
+                className="w-full mb-4 flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200"
+              >
+                Test Server Connection
+              </button>
             </div>
 
             <div>
