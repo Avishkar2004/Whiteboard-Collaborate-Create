@@ -80,24 +80,24 @@ const Whiteboard = () => {
     contextRef.current = context;
 
     // Connect to Socket.IO for real-time collaboration
-    const newSocket = io(API_URL, { 
+    const newSocket = io(API_URL, {
       auth: { token },
       transports: ['polling', 'websocket'], // Try both transport methods
       timeout: 20000, // 20 second timeout
     });
-    
+
     // Handle connection events
     newSocket.on('connect', () => {
       console.log('🔌 Connected to Socket.IO server');
     });
-    
+
     newSocket.on('connect_error', (error) => {
       console.log('🔌 Socket.IO connection error:', error.message);
       // Don't show error to user, just log it
     });
-    
+
     setSocket(newSocket);
-    
+
     return () => {
       newSocket.disconnect();
     };
