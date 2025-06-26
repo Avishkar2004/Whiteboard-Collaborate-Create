@@ -79,10 +79,28 @@ const Whiteboard = () => {
     context.lineWidth = lineWidth;
     contextRef.current = context;
 
-    const newSocket = io(API_URL, { auth: { token } });
+    // Connect to Socket.IO for real-time collaboration
+    const newSocket = io(API_URL, { 
+      auth: { token },
+      transports: ['polling', 'websocket'], // Try both transport methods
+      timeout: 20000, // 20 second timeout
+    });
+    
+    // Handle connection events
+    newSocket.on('connect', () => {
+      console.log('🔌 Connected to Socket.IO server');
+    });
+    
+    newSocket.on('connect_error', (error) => {
+      console.log('🔌 Socket.IO connection error:', error.message);
+      // Don't show error to user, just log it
+    });
+    
     setSocket(newSocket);
-
-    return () => newSocket.disconnect();
+    
+    return () => {
+      newSocket.disconnect();
+    };
   }, [token, color, lineWidth, tool]);
 
   // Effect for redrawing when history changes
@@ -172,6 +190,7 @@ const Whiteboard = () => {
 
     redrawCanvas(); // Redraw to show the line as it's being drawn
 
+    // Only emit to socket if connected
     if (socket) {
       socket.emit('draw', {
         roomId: id,
