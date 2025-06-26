@@ -21,7 +21,6 @@ const allowedOrigins = [
   "http://localhost:5173", // Development
   "http://localhost:3000", // Alternative dev port
   "https://whiteboard-collaborate-create.vercel.app", // Production
-  "https://whiteboard-coll-git-7abfdd-avishkarkakde2004-gmailcoms-projects.vercel.app",
   process.env.CLIENT_URL, // Environment variable for additional origins
 ].filter(Boolean); // Remove any undefined values
 
@@ -134,11 +133,13 @@ app.use("/api/whiteboards", (req, res, next) => {
   }
 });
 
-// Socket.IO server (only for non-serverless environments)
+// Socket.IO server (enabled in production when ENABLE_SOCKET is true)
 if (
   process.env.NODE_ENV !== "production" ||
   process.env.ENABLE_SOCKET === "true"
 ) {
+  console.log("🔌 Socket.IO server enabled");
+  
   const io = new Server(server, {
     cors: {
       origin: allowedOrigins,
@@ -146,24 +147,30 @@ if (
       allowedHeaders: ["Content-Type", "Authorization"],
       credentials: true,
     },
+    transports: ['polling', 'websocket'], // Support both polling and websockets
+    allowEIO3: true, // Allow Engine.IO v3 clients
   });
 
   io.on("connection", (socket) => {
-    console.log("A user connected:", socket.id);
+    console.log("🔌 User connected:", socket.id);
 
-    socket.on("joinWhiteboard", (boardId) => {
-      socket.join(boardId);
-      console.log(`User ${socket.id} joined whiteboard ${boardId}`);
+    socket.on("join-room", (roomId) => {
+      socket.join(roomId);
+      console.log(`🔌 User ${socket.id} joined room ${roomId}`);
     });
 
-    socket.on("whiteboardUpdate", ({ boardId, data }) => {
-      socket.to(boardId).emit("whiteboardUpdate", data);
+    socket.on("draw", (data) => {
+      // Broadcast to all users in the room except sender
+      socket.to(data.roomId).emit("draw", data);
+      console.log(`🔌 Drawing broadcasted in room ${data.roomId}`);
     });
 
     socket.on("disconnect", () => {
-      console.log("User disconnected:", socket.id);
+      console.log("🔌 User disconnected:", socket.id);
     });
   });
+} else {
+  console.log("🔌 Socket.IO server disabled in production");
 }
 
 // Error handling middleware
@@ -188,8 +195,8 @@ if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 5000;
   server.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
-    console.log(`CORS origins: ${allowedOrigins.join(", ")}`);
+    // console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+    // console.log(`CORS origins: ${allowedOrigins.join(", ")}`);
   });
 }
 
