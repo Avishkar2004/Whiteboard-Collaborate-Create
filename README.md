@@ -1,77 +1,136 @@
-# Whiteboard: Real-Time Collaborative Drawing & Sharing Platform
+# Whiteboard Collaborative App
 
-## What is this project?
+A real-time collaborative whiteboard application built with React, Node.js, Express, MongoDB, Redis, and Socket.IO. This project allows users to register, log in, create and share whiteboards, and collaborate in real time.
 
-**Whiteboard** is a modern, real-time collaborative whiteboard application designed for teams, students, educators, and creators. It enables multiple users to draw, share elements, and collaborate visually—live and seamlessly. The platform supports sharing specific whiteboard elements, managing access, and offers a beautiful, responsive UI for productivity on any device.
+---
 
-## Features
+## 🚀 Features
+- **User Authentication** (Register, Login, Logout)
+- **Create, Edit, and Delete Whiteboards**
+- **Real-time Collaboration** using Socket.IO
+- **Share Whiteboards and Elements**
+- **Starred and Recent Whiteboards**
+- **Profile Management**
+- **Responsive UI** with React and TailwindCSS
+- **Redis Caching** for performance
+- **Production-ready**: Deployable on Vercel (client & server)
 
-- **Live Drawing & Collaboration:** Draw, erase, and annotate with others in real time.
-- **Element Sharing:** Share specific parts of your whiteboard with others, with fine-grained access control.
-- **Presence Detection:** See who is online and collaborating with you.
-- **Auto-save & Version History:** Never lose your work—changes are saved automatically.
-- **User Profiles & Settings:** Manage your account, avatar, and preferences.
-- **Access Control:** Share boards or elements with individuals or make them public.
-- **Responsive UI:** Works beautifully on desktop, tablet, and mobile.
-- **Persistent Storage:** All boards and elements are saved in MongoDB.
-- **Performance:** Uses Redis for caching and Socket.io for real-time updates.
+---
 
-## Tech Stack
+## 🛠️ Tech Stack
+- **Frontend:** React, Vite, Zustand, TailwindCSS, Axios, Socket.IO-client
+- **Backend:** Node.js, Express, MongoDB (Mongoose), Redis, Socket.IO
+- **Deployment:** Vercel (client & server), MongoDB Atlas, Redis Cloud
 
-- **Frontend:** React.js, Zustand, Tailwind CSS
-- **Backend:** Node.js, Express.js
-- **Database:** MongoDB
-- **Cache:** Redis
-- **Real-time Communication:** Socket.io
-- **Containerization:** Docker, Docker Compose
+---
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 Whiteboard/
-├── client/                 # React frontend (src/pages, components, hooks, etc)
-├── server/                 # Node.js backend (controllers, models, routes, config)
-│   ├── controllers/
-│   ├── models/
-│   ├── routes/
-│   ├── config/
-│   └── middleware/
-├── docker-compose.yml      # Docker Compose setup
-└── README.md
+  ├── client/         # React frontend (Vite)
+  └── server/         # Node.js/Express backend
 ```
 
-## Setup Instructions
+---
 
-1. **Clone the repository**
-2. **Install dependencies:**
-   ```bash
-   # Server dependencies
-   cd server
-   npm install
+## ⚙️ Environment Variables
 
-   # Client dependencies
-   cd ../client
-   npm install
-   ```
-3. **Set up environment variables:**
-   - Copy `.env.example` to `.env` in both `client` and `server` directories
-   - Update the variables with your configuration (MongoDB URI, Redis, JWT secret, etc)
+### **Server (`server/.env`)**
+```
+PORT=5000
+CLIENT_URL=https://your-client-url.vercel.app
+MONGODB_URI=your-mongodb-atlas-connection-string
+JWT_SECRET=your_jwt_secret
+JWT_EXPIRES_IN=1d
+REDIS_PASSWORD=your_redis_password
+REDIS_HOST=your_redis_host
+NODE_ENV=production
+ENABLE_SOCKET=true
+```
 
-4. **Start the development servers:**
-   ```bash
-   # Start backend
-   cd server
-   npm run dev
+- **CLIENT_URL**: The deployed client URL (e.g., `https://whiteboard-collaborate-create.vercel.app`)
+- **MONGODB_URI**: Your MongoDB Atlas connection string
+- **JWT_SECRET**: Secret for JWT token signing
+- **REDIS_PASSWORD**: Password for your Redis Cloud instance
+- **REDIS_HOST**: Host for your Redis Cloud instance
+- **ENABLE_SOCKET**: Set to `true` to enable real-time collaboration in production
 
-   # Start frontend
-   cd ../client
-   npm run dev
-   ```
+### **Client (`client/.env`)**
+```
+VITE_ENABLE_SOCKET=true
+```
+- Set to `true` to enable real-time collaboration in production
 
-## Docker Setup
+---
 
-To run the application using Docker:
+## 🏗️ Setup & Development
 
+### **1. Clone the repository**
 ```bash
-docker-compose up --build
+git clone https://github.com/your-username/whiteboard-collaborate.git
+cd whiteboard-collaborate
 ```
+
+### **2. Install dependencies**
+```bash
+cd client && npm install
+cd ../server && npm install
+```
+
+### **3. Configure Environment Variables**
+- Copy the example `.env` files or create your own in both `client/` and `server/` as shown above.
+
+### **4. Run Locally**
+- **Start the backend:**
+  ```bash
+  cd server
+  npm run dev
+  ```
+- **Start the frontend:**
+  ```bash
+  cd client
+  npm run dev
+  ```
+- Visit [http://localhost:5173](http://localhost:5173)
+
+---
+
+## 🚀 Deployment
+
+### **Vercel (Recommended)**
+- Deploy both `client/` and `server/` as separate Vercel projects.
+- Set environment variables in the Vercel dashboard for each project.
+- Use the provided `vercel.json` files for routing and CORS.
+
+### **MongoDB Atlas**
+- Create a free cluster at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+- Whitelist Vercel IPs or use `0.0.0.0/0` for testing
+- Create a database user and get your connection string
+
+### **Redis Cloud**
+- Create a free Redis instance at [Redis Cloud](https://redis.com/try-free/)
+- Get your host and password
+
+---
+
+## 🧪 Testing
+- Use the `/api/db-status` endpoint to check server, database, and Redis status.
+- Use the "Test Server Connection" button on the Register page to verify connectivity.
+
+---
+
+## 📝 Notes
+- **Socket.IO**: Real-time features require both client and server to have Socket.IO enabled and the correct environment variables set.
+- **CORS**: Handled by both Express and Vercel configuration.
+- **Production**: For best results, use Vercel for both client and server, MongoDB Atlas, and Redis Cloud.
+
+---
+
+## 📄 License
+MIT
+
+---
+
+## 🙋‍♂️ Questions?
+If you have any issues, open an issue on GitHub or contact the maintainer.
