@@ -57,12 +57,6 @@ const Dashboard = () => {
     }
   }, [isAuthenticated, token]);
 
-  // Debug logging
-  useEffect(() => {
-    console.log('Active tab:', activeTab);
-    console.log('Whiteboards:', whiteboards);
-  }, [activeTab, whiteboards]);
-
   const handleStarToggle = async (e, boardId, isStarred) => {
     e.stopPropagation();
     try {
