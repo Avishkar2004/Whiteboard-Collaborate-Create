@@ -139,7 +139,7 @@ if (
   process.env.ENABLE_SOCKET === "true"
 ) {
   console.log("🔌 Socket.IO server enabled");
-  
+
   const io = new Server(server, {
     cors: {
       origin: allowedOrigins,
@@ -147,7 +147,7 @@ if (
       allowedHeaders: ["Content-Type", "Authorization"],
       credentials: true,
     },
-    transports: ['polling', 'websocket'], // Support both polling and websockets
+    transports: ["polling", "websocket"], // Support both polling and websockets
     allowEIO3: true, // Allow Engine.IO v3 clients
   });
 
